@@ -58,7 +58,7 @@ Bahasa kerja: **Bahasa Indonesia** (komentar, commit, dokumen, balasan ke tim). 
 
 | Nama | Peran | Folder |
 | --- | --- | --- |
-| Raihan | Backend ringan: CRUD API, auth, templat balasan, deploy, integrasi, plus Hustler (wawancara penjual, video, README, pitch). Waktu terbatas dan masih pemula, jelaskan kode dengan sederhana | `backend/app/api`, `core` |
+| Raihan | Backend : CRUD API, auth, templat balasan, deploy, integrasi, plus Hustler (wawancara penjual, video, README, pitch).  | `backend/app/api`, `core` |
 | Satria (**ketua tim**) | Backend: skema DB, rules, orkestrasi impor, rekap, parser WA, sidik, anonimisasi, data uji. Jalur kritis: skema DB duluan | `backend/app/db`, `rules`, `services`, `parser`, `sample/` |
 | Pangeran | Backend AI: ekstraktor LLM, agen tanya-jawab, bukti bayar, evaluasi, CI | `backend/app/extractor`, `agent`, `backend/tests/eval` |
 | Amad | Frontend: semua layar, PWA, aksesibilitas, uji pemakaian | `frontend/` |
