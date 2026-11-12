@@ -12,16 +12,16 @@ Prinsip: setiap orang punya **modul sendiri dengan antarmuka (fungsi) yang jelas
 
 | Orang | Area | Folder utama |
 | --- | --- | --- |
-| **Raihan** | Ketua: CRUD API, auth, templat balasan, deploy, integrasi, submission (beban teknis ringan karena waktu terbatas) | `backend/app/api`, `core` |
-| **Satria** | Skema DB, mesin aturan, orkestrasi impor, rekap, parser WA, anonimisasi, data uji | `backend/app/db`, `rules`, `services`, `parser`, `sample/` |
+| **Raihan** | CRUD API, auth, templat balasan, deploy, integrasi, Hustler (wawancara penjual, video, README, pitch). Beban teknis ringan karena waktu terbatas | `backend/app/api`, `core` |
+| **Satria (ketua tim)** | Skema DB, mesin aturan, orkestrasi impor, rekap, parser WA, anonimisasi, data uji | `backend/app/db`, `rules`, `services`, `parser`, `sample/` |
 | **Pangeran** | AI: ekstraktor LLM, ubah/batal (sisi AI), agen, vision, evaluasi, CI | `backend/app/extractor`, `agent`, `backend/tests/eval` |
 | **Amad** | Seluruh frontend, PWA, aksesibilitas, UX test, aset video | `frontend/` |
 
 ---
 
-## Raihan: Ketua, CRUD, Deploy, dan Submission (Backend, beban ringan)
+## Raihan: CRUD, Deploy, dan Hustler (Backend, beban ringan)
 
-Catatan: waktu Raihan terbatas dan masih belajar, jadi bagian teknis yang paling detail (skema DB, mesin aturan, orkestrasi, rekap) dipindah ke Satria. Raihan memegang bagian yang lurus dan berpola, dan fokus ke koordinasi serta kepatuhan lomba.
+Catatan: waktu Raihan terbatas dan masih belajar, jadi bagian teknis yang paling detail (skema DB, mesin aturan, orkestrasi, rekap) dipindah ke Satria. Raihan memegang bagian yang lurus dan berpola, plus peran Hustler (validasi masalah, video, README, pitch). **Ketua tim adalah Satria.**
 
 **Tanggung jawab teknis**
 
@@ -32,18 +32,17 @@ Catatan: waktu Raihan terbatas dan masih belajar, jadi bagian teknis yang paling
 5. Deploy backend + database, kuota API aktif selama penilaian, seed data demo yang sudah diproses sebagai cadangan.
 6. Menjalankan Claude Code dengan `CLAUDE.md` di repo untuk membantu menulis CRUD dan uji.
 
-**Non-kode (ketua tim)**
+**Non-kode (Hustler)**
 
 - Wawancara penjual asli dan pengukuran waktu rekap manual (bersama Amad), minta izin memakai chat.
-- Surat pernyataan orisinalitas bermaterai (PDF) dan e-meterai.
-- Submit di `logicodik2026.site`, cek semua tautan dari jendela penyamaran.
-- Pastikan semua anggota commit dari akun masing-masing dan repo publik.
+- README lengkap (bukti lapangan, hasil evaluasi, atribusi AI, batasan) dan naskah pitch.
+- Video demo 3-5 menit tanpa suara presentasi (rekaman layar aplikasi asli, termasuk fitur AI), unggah ke YouTube.
 
 **Antarmuka yang Raihan sediakan untuk orang lain**
 
 - Ke Amad: endpoint sesuai kontrak.
 
-**Selesai jika:** endpoint CRUD, auth, dan hapus batch hidup sesuai kontrak, deploy bisa diakses publik, semua item non-kode ketua selesai.
+**Selesai jika:** endpoint CRUD, auth, dan hapus batch hidup sesuai kontrak, deploy bisa diakses publik, README dan video selesai.
 
 ---
 
@@ -79,6 +78,13 @@ Satria punya waktu paling banyak, jadi memegang bagian paling detail dan paling 
    - set 30+ pesan asli tersamarkan beserta **jawaban benar** (`sample/gold.json`) untuk evaluasi,
    - lima kasus sulit: ubah, batal, item tidak ada di katalog, jumlah tidak wajar, percobaan manipulasi harga.
 8. Uji unit parser memakai potongan file **asli** Android dan iPhone (minta dari penjual atau ekspor sendiri).
+
+**Non-kode (ketua tim)**
+
+- Surat pernyataan orisinalitas bermaterai (PDF) dan e-meterai, ditandatangani ketua.
+- Submit di `logicodik2026.site`, cek semua tautan dari jendela penyamaran.
+- Pastikan semua anggota commit dari akun masing-masing dan repo publik.
+- Memantau checklist kepatuhan lomba di bagian bawah dokumen ini dan menjaga tidak ada commit setelah batas submission.
 
 **Antarmuka yang Satria sediakan**
 
@@ -163,10 +169,63 @@ Temuan masuk sebagai issue GitHub dengan label `bug` dan nama pemilik modul.
 ## Aturan kerja Git (wajib, ikut aturan lomba)
 
 - Repo **baru, publik, dibuat setelah kick-off**. Jangan pakai repo riset lama.
-- **Commit berkala**, pesan deskriptif: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`. Dilarang `update`, `final`, `wip`.
+- **Commit berkala**, pesan deskriptif. Dilarang `update`, `final`, `wip`.
+
+### Format commit
+
+Aturan lomba mewajibkan awalan `feat:`, `fix:`, `docs:`, `test:`, `refactor:`. Tim menambah inisial pembuat dan detail:
+
+```
+<tipe>: <apa yang dikerjakan> [<INISIAL>] - <detail>
+```
+
+| Bagian | Isi |
+| --- | --- |
+| `tipe` | `feat`, `fix`, `docs`, `test`, `refactor` (dari aturan lomba) |
+| apa yang dikerjakan | satu kalimat pendek, kata kerja di depan, huruf kecil |
+| `[INISIAL]` | tiga huruf inisial nama lengkap orang yang commit |
+| detail | alasan, cakupan, atau catatan penting setelah tanda ` - ` |
+
+Contoh:
+
+```
+feat: tambah parser ekspor WhatsApp format Android [RWB] - tangani pesan multi-baris dan buang pesan sistem
+fix: perbaiki sidik pesan dobel di menit yang sama [RWB] - tambah urutan dalam menit ke hash
+test: tambah uji anonimisasi nomor telepon [RWB] - cover format +62, 08, dan spasi
+docs: perbarui pembagian tugas [RWB] - pindahkan skema DB ke Satria
+```
+
+Inisial tim:
+
+| Nama | Inisial |
+| --- | --- |
+| Raihan | RWB |
+| Satria | _isi_ |
+| Pangeran | _isi_ |
+| Amad | _isi_ |
+
+### Alur cabang dan merge
+
+1. **Dilarang commit atau push langsung ke `main`.** `main` hanya menerima merge dari Pull Request.
+2. Satu fitur atau satu perbaikan = satu cabang, dibuat dari `main` terbaru.
+3. Nama cabang: `<tipe>/<modul>-<deskripsi-singkat>`, huruf kecil, pakai tanda hubung. Contoh: `feat/parser-wa-android`, `feat/extractor-intent`, `fix/rules-stok-negatif`, `docs/aturan-git`.
+4. Push cabang ke GitHub, buka **Pull Request ke `main`** dengan judul mengikuti format commit.
+5. PR dibaca dan disetujui **satu orang lain** (bukan pembuatnya), lalu di-merge. Pakai **Create a merge commit** (bukan squash), supaya commit tiap anggota tetap terlihat.
+6. Hapus cabang setelah merge. Sebelum mulai fitur baru, `git pull` dari `main`.
+7. Satu PR jangan memuat banyak fitur. Jangan menyentuh folder modul orang lain tanpa sepengetahuan pemiliknya.
+
+Alur singkat:
+
+```bash
+git switch main && git pull
+git switch -c feat/parser-wa-android
+# ...kerja, commit berkala...
+git push -u origin feat/parser-wa-android
+# buka Pull Request ke main di GitHub
+```
 - Satu orang satu akun GitHub sendiri. Semua anggota harus punya commit.
 - **Dilarang** force push, rebase riwayat yang sudah di-push, atau bulk upload di akhir.
-- Cabang per fitur: `feat/parser-wa`, `feat/extractor`, `feat/review-screen`, dst., lalu PR ke `main` dan dibaca satu orang lain.
+- Cabang per fitur, PR ke `main`, dibaca satu orang lain (detail di "Format commit" dan "Alur cabang dan merge" di atas).
 - `.env` tidak boleh masuk repo. Hanya `.env.example`.
 - Tidak ada commit setelah code freeze 14 November 23.59.
 

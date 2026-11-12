@@ -1,7 +1,45 @@
 # Rekapesan: panduan untuk Claude
 
 Perekap pesanan pre-order (PO) makanan dari grup WhatsApp untuk penjual rumahan. Dibuat untuk **LOGICODIX 2026** (HIMTI UNESA), kategori Web, subtema Local MSME and Creative Economy.
-**Code freeze: 14 November 23.59 WIB.** Tidak ada commit setelahnya. Submit di `logicodik2026.site`.
+**Code freeze: Sabtu 14 November 2026** (Last Submission). Guidebook tidak menyebut jam pasti, tim memakai 23.59 WIB sebagai batas aman, cek grup WhatsApp peserta. Tidak ada commit setelahnya, dan yang dinilai adalah versi terakhir sebelum batas.
+
+## Lomba: aturan dan penilaian (sumber: Guidebook resmi LOGICODIX 2026, hal. 4-17)
+
+**Penilaian juri (bobot resmi):**
+
+| Kriteria | Bobot | Yang dilihat juri | Artinya untuk kita |
+| --- | --- | --- | --- |
+| Problem-Solution Fit | 25% | Ketajaman masalah, kesesuaian solusi dengan kebutuhan pengguna | Bukti lapangan penjual asli, ukur waktu rekap manual vs Rekapesan. Jangan klaim angka yang tidak diukur |
+| Technology Innovation | 25% | Efektivitas teknologi, **AI jadi nilai tambah** | LLM hanya untuk memahami teks, kode untuk hitung. Tunjukkan agen + trace dan tanda kuning |
+| Software Engineering | 25% | Fungsionalitas MVP, kualitas kode, arsitektur, **dokumentasi** | Alur utama jalan tanpa error, uji pytest, CI hijau, README lengkap, riwayat commit rapi dari semua anggota |
+| UI/UX | 15% | Desain antarmuka, kemudahan, alur pengguna | Mobile-first, alur impor ke review ke rekap pendek, aksesibilitas |
+| Green IT & Ethics | 10% | Efisiensi sumber daya, **privasi data, transparansi AI** | Anonimisasi nomor, hapus batch, LLM tidak menentukan harga, hasil AI selalu bisa dicek penjual. Catat efisiensi (model kecil, panggilan per pengirim, tanpa pemanggilan berulang) |
+
+Catatan: `00_RINGKASAN_DAN_FRAMEWORK.md` dan `04_analisis_pola_kemenangan_hackathon_2026.md` di folder riset `matamata/Hekathon` memuat bobot 30/25/25/20. **Itu salah.** Pakai tabel di atas, yang diambil langsung dari Guidebook hal. 17.
+
+**Peran menurut materi mentoring Navasena:** Hacker (bangun MVP), Hipster (UI/UX, alur pengguna), Hustler (validasi masalah, pitch, narasi dan video demo, model keberlanjutan). Di tim ini Pangeran dan Satria = Hacker, Amad = Hacker FE + Hipster, Raihan = Hustler (bukti lapangan, video, README, pitch) dan integrasi.
+
+**Aturan yang bisa mendiskualifikasi:**
+- Karya orisinal, bukan plagiat, dan **belum pernah diikutkan di lomba lain**. Kode, data, dan aset harus bisa dipertanggungjawabkan (atribusi di README bagian 11).
+- Web/Mobile MVP, menerapkan salah satu subtema (kita: Local MSME and Creative Economy), menyelesaikan masalah nyata.
+- Wajib: source code di GitHub, video demo 3-5 menit, mengikuti seluruh rangkaian sesuai jadwal.
+- **Video: demonstrasi aplikasi nyata, termasuk fitur AI, tanpa suara presentasi atau penjelasan lisan.** Jangan pakai narasi suara. Teks keterangan di layar dianggap aman, konfirmasi ke panitia bila ragu.
+- Tidak boleh mengubah source code setelah batas submission. Pelanggaran bisa berujung diskualifikasi.
+- Maksimal 4 orang per tim. Penggunaan AI dan API AI/model open-source diperbolehkan, dengan etika, perlindungan data, dan efisiensi sumber daya.
+
+**Jadwal:** hacking week 7-14 Nov, pengumuman Top 8 pada 21 Nov, technical meeting final 22 Nov, Grand Final luring di UNESA 29 Nov.
+
+**Grand Final (15 menit):** 1 menit pasang laptop dan verifikasi **localhost**, 7 menit presentasi + live demo, 3 menit Q&A juri, 4 menit penilaian. Karena itu:
+- Aplikasi harus bisa jalan **di localhost laptop sendiri**, dengan `README` langkah jalan yang teruji dari repo bersih.
+- Siapkan **data demo (seed) dan hasil ekstraksi tersimpan** sebagai cadangan bila internet atau kuota LLM mati saat demo.
+- Latih jawaban Q&A: kenapa LLM tidak menghitung harga, bagaimana mencegah prompt injection, bagaimana privasi nomor telepon dijaga, apa bedanya dengan menyalin manual atau Excel.
+
+**Prioritas MVP (sisa waktu sangat singkat, kerjakan berurutan, jangan lompat):**
+1. P0: tempel teks atau unggah ekspor, parser, anonimisasi, ekstraksi LLM, hitung total dengan kode, layar review, rekap produksi. Satu alur utuh dari ujung ke ujung dulu.
+2. P1: tanda kuning, ubah/batal, setujui, balasan konfirmasi, login demo, hapus batch, README dan video.
+3. P2: agen tanya-jawab dengan trace, evaluasi gold set dengan angka jujur, CI.
+4. P3: bukti bayar, daftar belanja, PWA share target.
+Fitur yang tidak selesai jangan dicentang di README dan jangan ditampilkan di video.
 
 Bahasa kerja: **Bahasa Indonesia** (komentar, commit, dokumen, balasan ke tim). Nama identifier kode boleh Inggris, kode tanda kuning dan istilah domain tetap Indonesia.
 
@@ -20,8 +58,8 @@ Bahasa kerja: **Bahasa Indonesia** (komentar, commit, dokumen, balasan ke tim). 
 
 | Nama | Peran | Folder |
 | --- | --- | --- |
-| Raihan (ketua) | Backend ringan: CRUD API, auth, templat balasan, deploy, integrasi, submission. Waktu terbatas dan masih pemula, jelaskan kode dengan sederhana | `backend/app/api`, `core` |
-| Satria | Backend: skema DB, rules, orkestrasi impor, rekap, parser WA, sidik, anonimisasi, data uji. Jalur kritis: skema DB duluan | `backend/app/db`, `rules`, `services`, `parser`, `sample/` |
+| Raihan | Backend ringan: CRUD API, auth, templat balasan, deploy, integrasi, plus Hustler (wawancara penjual, video, README, pitch). Waktu terbatas dan masih pemula, jelaskan kode dengan sederhana | `backend/app/api`, `core` |
+| Satria (**ketua tim**) | Backend: skema DB, rules, orkestrasi impor, rekap, parser WA, sidik, anonimisasi, data uji. Jalur kritis: skema DB duluan | `backend/app/db`, `rules`, `services`, `parser`, `sample/` |
 | Pangeran | Backend AI: ekstraktor LLM, agen tanya-jawab, bukti bayar, evaluasi, CI | `backend/app/extractor`, `agent`, `backend/tests/eval` |
 | Amad | Frontend: semua layar, PWA, aksesibilitas, uji pemakaian | `frontend/` |
 
@@ -61,8 +99,14 @@ Antarmuka antar-modul (jangan ubah signature tanpa kesepakatan):
 
 ## Aturan Git (wajib, aturan lomba)
 
-- Satu orang satu akun GitHub. Cabang per fitur (`feat/parser-wa`, `feat/extractor`, `feat/review-screen`), PR ke `main`, dibaca satu orang lain.
-- Pesan commit deskriptif dengan awalan `feat:`, `fix:`, `docs:`, `test:`, `refactor:`. **Dilarang** `update`, `final`, `wip`.
+- Satu orang satu akun GitHub.
+- **Jangan pernah commit atau push langsung ke `main`.** Satu fitur = satu cabang `<tipe>/<modul>-<deskripsi>` (mis. `feat/parser-wa-android`), lalu Pull Request ke `main`, disetujui satu orang lain, merge dengan **merge commit** (bukan squash), hapus cabang setelahnya.
+- Format commit (awalan tipe wajib dari aturan lomba):
+  `<tipe>: <apa yang dikerjakan> [<INISIAL>] - <detail>`
+  Tipe: `feat`, `fix`, `docs`, `test`, `refactor`. Contoh: `feat: tambah parser ekspor WhatsApp Android [RWB] - tangani pesan multi-baris`.
+  Inisial: Raihan = RWB, lainnya lihat tabel di `docs/PEMBAGIAN_TUGAS.md`. Kalau belum jelas siapa user-nya, tanyakan dulu, jangan menebak inisial.
+- **Dilarang** pesan `update`, `final`, `wip`.
+- Jangan menambahkan `Co-Authored-By` atau atribusi Claude di commit atau PR. Commit memakai identitas Git user.
 - **Dilarang** force push, rebase riwayat yang sudah di-push, bulk upload di akhir.
 - `.env` tidak boleh masuk repo. Hanya `.env.example`, tanpa nilai asli. Jangan menulis API key di kode, dokumen, atau commit.
 - Jangan commit atau push kecuali user minta.
