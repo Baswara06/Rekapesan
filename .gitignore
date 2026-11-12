@@ -1,0 +1,30 @@
+# Kredensial - JANGAN PERNAH DI-COMMIT
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Database lokal
+*.db
+*.sqlite3
+
+# Data asli penjual (hanya data samaran yang boleh masuk repo)
+sample/asli/
+*.private.txt
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
