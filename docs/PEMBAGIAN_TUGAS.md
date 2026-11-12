@@ -163,10 +163,63 @@ Temuan masuk sebagai issue GitHub dengan label `bug` dan nama pemilik modul.
 ## Aturan kerja Git (wajib, ikut aturan lomba)
 
 - Repo **baru, publik, dibuat setelah kick-off**. Jangan pakai repo riset lama.
-- **Commit berkala**, pesan deskriptif: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`. Dilarang `update`, `final`, `wip`.
+- **Commit berkala**, pesan deskriptif. Dilarang `update`, `final`, `wip`.
+
+### Format commit
+
+Aturan lomba mewajibkan awalan `feat:`, `fix:`, `docs:`, `test:`, `refactor:`. Tim menambah inisial pembuat dan detail:
+
+```
+<tipe>: <apa yang dikerjakan> [<INISIAL>] - <detail>
+```
+
+| Bagian | Isi |
+| --- | --- |
+| `tipe` | `feat`, `fix`, `docs`, `test`, `refactor` (dari aturan lomba) |
+| apa yang dikerjakan | satu kalimat pendek, kata kerja di depan, huruf kecil |
+| `[INISIAL]` | tiga huruf inisial nama lengkap orang yang commit |
+| detail | alasan, cakupan, atau catatan penting setelah tanda ` - ` |
+
+Contoh:
+
+```
+feat: tambah parser ekspor WhatsApp format Android [RWB] - tangani pesan multi-baris dan buang pesan sistem
+fix: perbaiki sidik pesan dobel di menit yang sama [RWB] - tambah urutan dalam menit ke hash
+test: tambah uji anonimisasi nomor telepon [RWB] - cover format +62, 08, dan spasi
+docs: perbarui pembagian tugas [RWB] - pindahkan skema DB ke Satria
+```
+
+Inisial tim:
+
+| Nama | Inisial |
+| --- | --- |
+| Raihan | RWB |
+| Satria | _isi_ |
+| Pangeran | _isi_ |
+| Amad | _isi_ |
+
+### Alur cabang dan merge
+
+1. **Dilarang commit atau push langsung ke `main`.** `main` hanya menerima merge dari Pull Request.
+2. Satu fitur atau satu perbaikan = satu cabang, dibuat dari `main` terbaru.
+3. Nama cabang: `<tipe>/<modul>-<deskripsi-singkat>`, huruf kecil, pakai tanda hubung. Contoh: `feat/parser-wa-android`, `feat/extractor-intent`, `fix/rules-stok-negatif`, `docs/aturan-git`.
+4. Push cabang ke GitHub, buka **Pull Request ke `main`** dengan judul mengikuti format commit.
+5. PR dibaca dan disetujui **satu orang lain** (bukan pembuatnya), lalu di-merge. Pakai **Create a merge commit** (bukan squash), supaya commit tiap anggota tetap terlihat.
+6. Hapus cabang setelah merge. Sebelum mulai fitur baru, `git pull` dari `main`.
+7. Satu PR jangan memuat banyak fitur. Jangan menyentuh folder modul orang lain tanpa sepengetahuan pemiliknya.
+
+Alur singkat:
+
+```bash
+git switch main && git pull
+git switch -c feat/parser-wa-android
+# ...kerja, commit berkala...
+git push -u origin feat/parser-wa-android
+# buka Pull Request ke main di GitHub
+```
 - Satu orang satu akun GitHub sendiri. Semua anggota harus punya commit.
 - **Dilarang** force push, rebase riwayat yang sudah di-push, atau bulk upload di akhir.
-- Cabang per fitur: `feat/parser-wa`, `feat/extractor`, `feat/review-screen`, dst., lalu PR ke `main` dan dibaca satu orang lain.
+- Cabang per fitur, PR ke `main`, dibaca satu orang lain (detail di "Format commit" dan "Alur cabang dan merge" di atas).
 - `.env` tidak boleh masuk repo. Hanya `.env.example`.
 - Tidak ada commit setelah code freeze 14 November 23.59.
 
