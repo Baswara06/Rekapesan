@@ -19,8 +19,8 @@ Dibuat untuk **LOGICODIX 2026** (HIMTI UNESA).
 
 | Nama | Peran | Kontribusi |
 | --- | --- | --- |
-| Raihan | Backend, ketua tim | CRUD API, auth, templat balasan, deploy, integrasi, submission |
-| Satria | Backend | Skema DB, mesin aturan, orkestrasi impor, rekap, parser ekspor WhatsApp, impor ulang, anonimisasi, data uji |
+| Raihan | Backend, Hustler | CRUD API, auth, templat balasan, deploy, integrasi, wawancara penjual, video, README |
+| Satria | Backend, ketua tim | Skema DB, mesin aturan, orkestrasi impor, rekap, parser ekspor WhatsApp, impor ulang, anonimisasi, data uji |
 | Pangeran | Backend (AI) | Ekstraktor LLM, agen tanya-jawab, bukti bayar, evaluasi |
 | Amad | Frontend | Seluruh antarmuka, PWA, aksesibilitas, uji pemakaian |
 

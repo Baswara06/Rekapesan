@@ -12,16 +12,16 @@ Prinsip: setiap orang punya **modul sendiri dengan antarmuka (fungsi) yang jelas
 
 | Orang | Area | Folder utama |
 | --- | --- | --- |
-| **Raihan** | Ketua: CRUD API, auth, templat balasan, deploy, integrasi, submission (beban teknis ringan karena waktu terbatas) | `backend/app/api`, `core` |
-| **Satria** | Skema DB, mesin aturan, orkestrasi impor, rekap, parser WA, anonimisasi, data uji | `backend/app/db`, `rules`, `services`, `parser`, `sample/` |
+| **Raihan** | CRUD API, auth, templat balasan, deploy, integrasi, Hustler (wawancara penjual, video, README, pitch). Beban teknis ringan karena waktu terbatas | `backend/app/api`, `core` |
+| **Satria (ketua tim)** | Skema DB, mesin aturan, orkestrasi impor, rekap, parser WA, anonimisasi, data uji | `backend/app/db`, `rules`, `services`, `parser`, `sample/` |
 | **Pangeran** | AI: ekstraktor LLM, ubah/batal (sisi AI), agen, vision, evaluasi, CI | `backend/app/extractor`, `agent`, `backend/tests/eval` |
 | **Amad** | Seluruh frontend, PWA, aksesibilitas, UX test, aset video | `frontend/` |
 
 ---
 
-## Raihan: Ketua, CRUD, Deploy, dan Submission (Backend, beban ringan)
+## Raihan: CRUD, Deploy, dan Hustler (Backend, beban ringan)
 
-Catatan: waktu Raihan terbatas dan masih belajar, jadi bagian teknis yang paling detail (skema DB, mesin aturan, orkestrasi, rekap) dipindah ke Satria. Raihan memegang bagian yang lurus dan berpola, dan fokus ke koordinasi serta kepatuhan lomba.
+Catatan: waktu Raihan terbatas dan masih belajar, jadi bagian teknis yang paling detail (skema DB, mesin aturan, orkestrasi, rekap) dipindah ke Satria. Raihan memegang bagian yang lurus dan berpola, plus peran Hustler (validasi masalah, video, README, pitch). **Ketua tim adalah Satria.**
 
 **Tanggung jawab teknis**
 
@@ -32,18 +32,17 @@ Catatan: waktu Raihan terbatas dan masih belajar, jadi bagian teknis yang paling
 5. Deploy backend + database, kuota API aktif selama penilaian, seed data demo yang sudah diproses sebagai cadangan.
 6. Menjalankan Claude Code dengan `CLAUDE.md` di repo untuk membantu menulis CRUD dan uji.
 
-**Non-kode (ketua tim)**
+**Non-kode (Hustler)**
 
 - Wawancara penjual asli dan pengukuran waktu rekap manual (bersama Amad), minta izin memakai chat.
-- Surat pernyataan orisinalitas bermaterai (PDF) dan e-meterai.
-- Submit di `logicodik2026.site`, cek semua tautan dari jendela penyamaran.
-- Pastikan semua anggota commit dari akun masing-masing dan repo publik.
+- README lengkap (bukti lapangan, hasil evaluasi, atribusi AI, batasan) dan naskah pitch.
+- Video demo 3-5 menit tanpa suara presentasi (rekaman layar aplikasi asli, termasuk fitur AI), unggah ke YouTube.
 
 **Antarmuka yang Raihan sediakan untuk orang lain**
 
 - Ke Amad: endpoint sesuai kontrak.
 
-**Selesai jika:** endpoint CRUD, auth, dan hapus batch hidup sesuai kontrak, deploy bisa diakses publik, semua item non-kode ketua selesai.
+**Selesai jika:** endpoint CRUD, auth, dan hapus batch hidup sesuai kontrak, deploy bisa diakses publik, README dan video selesai.
 
 ---
 
@@ -79,6 +78,13 @@ Satria punya waktu paling banyak, jadi memegang bagian paling detail dan paling 
    - set 30+ pesan asli tersamarkan beserta **jawaban benar** (`sample/gold.json`) untuk evaluasi,
    - lima kasus sulit: ubah, batal, item tidak ada di katalog, jumlah tidak wajar, percobaan manipulasi harga.
 8. Uji unit parser memakai potongan file **asli** Android dan iPhone (minta dari penjual atau ekspor sendiri).
+
+**Non-kode (ketua tim)**
+
+- Surat pernyataan orisinalitas bermaterai (PDF) dan e-meterai, ditandatangani ketua.
+- Submit di `logicodik2026.site`, cek semua tautan dari jendela penyamaran.
+- Pastikan semua anggota commit dari akun masing-masing dan repo publik.
+- Memantau checklist kepatuhan lomba di bagian bawah dokumen ini dan menjaga tidak ada commit setelah batas submission.
 
 **Antarmuka yang Satria sediakan**
 
