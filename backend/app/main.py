@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, batches, health, impor, products
+from app.api import agen, auth, batches, health, impor, orders, pembayaran, products, recap
 from app.core.config import get_settings
 from app.core.errors import pasang_penanganan_galat
 from app.core.security import require_login
@@ -35,5 +35,5 @@ app.include_router(auth.router)
 
 # Semua yang lain wajib login (header Authorization: Bearer <token>).
 terlindungi = [Depends(require_login)]
-for modul in (impor, products, batches):
+for modul in (impor, products, batches, orders, recap, pembayaran, agen):
     app.include_router(modul.router, dependencies=terlindungi)
