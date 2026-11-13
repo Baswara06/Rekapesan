@@ -115,3 +115,33 @@ def test_berkas_contoh_di_repo():
     assert len(pesan) == 9
     assert pesan[2].isi == "aybak 1 sama es teh 1\nuntuk jam 12 ya"
     assert {p.pengirim for p in pesan} == {"Dewi", "Bu Rina", "Pak Anton", "Mbak Sari", "Mas Budi", "Mas Joko"}
+
+
+# Bentuk baris di bawah ini diambil dari ekspor iPhone asli berbahasa Inggris (13 Nov 2026).
+# Nama dan isi diganti samaran; yang dipertahankan hanya strukturnya.
+IPHONE_INGGRIS = (
+    "[12/11/26, 08.02.11] Bu Rina: \u200eMessages and calls are end-to-end encrypted.\n"
+    "[12/11/26, 09.15.40] Bu Rina: ayam bakar 2 ya \u200eimage omitted\n"
+    "\u200e[12/11/26, 09.16.02] Bu Rina: \u200eimage omitted\n"
+    "[12/11/26, 09.17.30] Pak Anton: lodeh 1 aja \u200e<This message was edited>\n"
+    "[12/11/26, 09.18.00] Pak Anton: \u200eYou deleted this message.\n"
+    "[12/11/26, 09.19.00] Pak Anton: \u200eMissed voice call. \u200eTap to call back\n"
+    "[12/11/26, 09.20.00] Bu Rina: \u200eYour security code with Pak Anton changed.\n"
+    "[12/11/26, 09.21.00] Bu Rina: es teh 1\n"
+    "kirim jam 12 \u200evideo omitted\n"
+)
+
+
+def test_iphone_inggris_media_berketerangan_dan_pesan_sistem():
+    pesan = pecah_pesan(IPHONE_INGGRIS)
+    assert [(p.pengirim, p.isi) for p in pesan] == [
+        ("Bu Rina", "ayam bakar 2 ya"),  # keterangan gambar dipertahankan, penandanya dibuang
+        ("Pak Anton", "lodeh 1 aja"),
+        ("Bu Rina", "es teh 1\nkirim jam 12"),
+    ]
+    assert not any("\u200e" in p.isi for p in pesan)
+
+
+def test_karakter_tak_terlihat_di_tengah_isi_dibuang_tanpa_memotong_teks():
+    teks = "12/11/26 09.15 - Bu Rina: ayam \u200ebakar 2, tolong jangan image omitted ya\n"
+    assert pecah_pesan(teks)[0].isi == "ayam bakar 2, tolong jangan image omitted ya"
