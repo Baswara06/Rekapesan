@@ -50,12 +50,12 @@ Diukur Satria dengan penilai yang sama, hanya `LLM_MODEL` yang diganti. Satu kal
 | Model | Benar | Salah | Rincian salah |
 | --- | --- | --- | --- |
 | claude-haiku-5-5 | 39 | 1 | 0 tertangkap, 1 lolos |
-| gpt-5.4-mini | 37 | 3 | belum dirinci |
-| gemini-3.5-flash-lite | 36 | 4 | belum dirinci |
-| gemini-3.1-flash-lite | 35 | 5 | belum dirinci |
+| gpt-5.4-mini | 37 | 3 | 0 tertangkap, 3 lolos |
+| gemini-3.5-flash-lite | 36 | 4 | 0 tertangkap, 4 lolos |
+| gemini-3.1-flash-lite | 35 | 5 | 0 tertangkap, 5 lolos |
 | gpt-5.4-nano | 28 | 12 | 3 tertangkap, 9 lolos |
 
-Model dipilih karena paling banyak benar dan paling murah di antara lima model menurut pengukuran Satria (0,10 / 0,50 per juta token masuk / keluar, lewat sumopod). Satu panggilan per pengirim, tanpa pemanggilan berulang kecuali keluaran tidak sah. 40 kasus selesai sekitar 39 detik.
+Pada empat model pertama, semua kesalahan lolos tanpa tanda dan tidak ada yang tertangkap. Model dipilih karena paling banyak benar dan paling murah di antara lima model menurut pengukuran Satria (0,10 / 0,50 per juta token masuk / keluar, lewat sumopod). Satu panggilan per pengirim, tanpa pemanggilan berulang kecuali keluaran tidak sah. 40 kasus selesai sekitar 39 detik.
 
 ## Uji waktu (bukti masalah)
 
@@ -68,7 +68,7 @@ Penjual dan kondisi pengukuran: _isi_
 
 ## Temuan dan perbaikan
 
-- **g16 ("lodeh 1, hub saya di [nomor] kalau sudah sampai lobi")**: gold menganggap alamatnya "lobi", model memasukkannya ke `catatan` dan mengosongkan `alamat`. Tiga kali dijalankan ulang, hasilnya sama. Menurut pengukuran Satria, tiga dari lima model menjawab sama dengan Haiku, jadi gold kemungkinan terlalu ketat dan kasus ini ambigu. Gold tidak diubah supaya angka tetap apa adanya. Di aplikasi pesanan ini tetap diberi tanda `alamat_kosong`, tetapi penilai tidak menghitung tanda umum itu sebagai "tertangkap", sehingga kasus ini masuk "lolos".
+- **g16 ("lodeh 1, hub saya di [nomor] kalau sudah sampai lobi")**: gold menganggap alamatnya "lobi", model memasukkannya ke `catatan` dan mengosongkan `alamat`. Tiga kali dijalankan ulang, hasilnya sama. Menurut pengukuran Satria, tiga dari lima model, termasuk Haiku (Haiku dan dua model gemini), mengosongkan alamat pada kasus ini, jadi gold kemungkinan terlalu ketat dan kasus ini ambigu. Gold tidak diubah supaya angka tetap apa adanya. Di aplikasi pesanan ini tetap diberi tanda `alamat_kosong`, tetapi penilai tidak menghitung tanda umum itu sebagai "tertangkap", sehingga kasus ini masuk "lolos".
 - **Jumlah mustahil**: uji manual menemukan jumlah sangat besar (mis. 10^20) membuat penyimpanan gagal dan seluruh impor jatuh. Diperbaiki: jumlah di atas 10.000 dianggap tidak terbaca dan pesanan ditandai `jumlah_kosong`.
 - **Agen**: jawaban memuat markdown yang tampil mentah di layar. Diperbaiki dengan instruksi dan pembersihan keluaran.
 
