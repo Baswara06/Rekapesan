@@ -120,7 +120,7 @@ Aturan `PATCH /orders/{id}`:
 - `items` yang dikirim **menggantikan** seluruh item: `[{product_id, teks_asli, qty, catatan_item}]`. Server mengisi `harga_satuan` dari katalog dan menghitung ulang `total` serta `tanda`. Kolom `harga_satuan` dan `total` dari klien **diabaikan**. `product_id` yang tidak dikenal menjadi `null` dan pesanan diberi tanda `item_tidak_dikenal`.
 - `jam_kirim` diterima dalam bentuk bebas ("12", "jam 11.30") dan disimpan sebagai `HH:MM`. Kosong atau `null` menghapus jam. Jam tidak sah → 422.
 - Isian yang tidak dikirim tidak berubah. `alamat: null` atau `""` menghapus alamat.
-- Stok dihitung dari pesanan lain di batch yang sama yang belum batal.
+- Stok dibagi menurut urutan pesanan masuk: pesanan diberi `stok_kurang` hanya bila pesanan yang masuk lebih dulu (dan belum batal) ditambah dirinya melebihi stok. Setiap ubah, tolak, atau buka lagi menghitung ulang tanda `stok_kurang` semua pesanan di batch, jadi `tanda` pesanan lain bisa ikut berubah.
 - `product_id` menu yang tidak ada atau sudah nonaktif diperlakukan seperti tidak dikenal (`null`), sama seperti jalur impor.
 - `status` hanya boleh berpindah menurut tabel di bawah. Di luar itu 409 `validasi_gagal`. Mengirim status yang sama dengan status sekarang tidak mengubah apa pun.
 
