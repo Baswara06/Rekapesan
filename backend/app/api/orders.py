@@ -37,6 +37,7 @@ from app.rules import (
     validasi_product_id,
 )
 from app.schemas import ExtractedItem, Extraction
+from app.services import segarkan_tanda_stok
 from app.services.import_service import katalog_untuk_rules, order_ke_dict
 
 router = APIRouter(prefix="/api")
@@ -186,6 +187,7 @@ def ubah_pesanan(order_id: str, body: OrderPatch, db: Session = Depends(get_db))
         order.status = body.status
 
     _hitung_ulang(db, order)
+    segarkan_tanda_stok(db, order.batch_id)  # stok menurut urutan masuk, untuk semua pesanan di batch
     db.commit()
     return order_out(order)
 
@@ -209,6 +211,7 @@ def tolak(order_id: str, db: Session = Depends(get_db)) -> dict[str, Any]:
     if order.status != STATUS_BATAL:
         order.status = STATUS_BATAL
         order.tanda = []
+        segarkan_tanda_stok(db, order.batch_id)  # stok yang dilepas bisa menghapus tanda pesanan lain
         db.commit()
     return order_out(order)
 

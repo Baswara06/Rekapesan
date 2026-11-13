@@ -12,7 +12,7 @@ Bentuk `order_context` (disusun oleh `services/import_service.py`):
           "catatan": str | None, "total": int, "tanda": list[str],
           "items": [{"product_id", "teks_asli", "qty", "harga_satuan", "catatan_item"}],
       },
-      "terpakai": {product_id: int},   # qty pesanan LAIN di batch yang sama (bukan pesanan aktif ini)
+      "terpakai": {product_id: int},   # qty pesanan yang MASUK LEBIH DULU di batch yang sama
       "ambang_jumlah_tidak_wajar": int,  # opsional, default 20
     }
 """
@@ -136,15 +136,28 @@ def tanda_pesanan(
             tanda.add("jumlah_kosong")
         elif qty > ambang:
             tanda.add("jumlah_tidak_wajar")
-    for pid, qty in qty_per_produk(items).items():
-        stok = (catalog.get(pid) or {}).get("stok_harian")
-        if stok is not None and terpakai.get(pid, 0) + qty > stok:
-            tanda.add("stok_kurang")
+    if stok_kurang(items, catalog, terpakai):
+        tanda.add("stok_kurang")
     if not jam_kirim:
         tanda.add("jam_kosong")
     if not _teks(alamat):
         tanda.add("alamat_kosong")
     return [t for t in _URUTAN_TANDA if t in tanda]
+
+
+def atur_tanda(tanda: list[str], kode: Tanda, pasang: bool) -> list[str]:
+    """Pasang atau lepas satu tanda tanpa mengubah tanda lain, dalam urutan tetap."""
+    kumpulan = set(tanda) | {kode} if pasang else set(tanda) - {kode}
+    return [t for t in _URUTAN_TANDA if t in kumpulan]
+
+
+def stok_kurang(items: list[dict[str, Any]], catalog: dict[str, Any], terpakai: dict[str, int]) -> bool:
+    """True bila pesanan ini, ditambah yang sudah terpakai pesanan SEBELUMNYA, melebihi stok harian."""
+    for pid, qty in qty_per_produk(items).items():
+        stok = (catalog.get(pid) or {}).get("stok_harian")
+        if stok is not None and terpakai.get(pid, 0) + qty > stok:
+            return True
+    return False
 
 
 def _potret(order: dict[str, Any]) -> dict[str, Any]:
