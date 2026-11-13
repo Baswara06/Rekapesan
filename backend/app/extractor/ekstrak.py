@@ -18,6 +18,9 @@ from app.schemas import CatalogEntry, ExtractedItem, Extraction, Intent, Message
 log = logging.getLogger(__name__)
 
 _INTENT = set(get_args(Intent))
+# Jumlah porsi di atas ini mustahil untuk pesanan rumahan. Nilai sebesar itu (mis. 99999999999999999999)
+# membuat penyimpanan ke database gagal dan menjatuhkan seluruh impor, jadi dianggap tidak terbaca.
+MAKS_QTY = 10_000
 _PAGAR_KODE = re.compile(r"^```(?:json)?\s*|\s*```$", re.IGNORECASE)
 
 
@@ -36,12 +39,14 @@ def _qty(nilai: Any) -> int | None:
     if isinstance(nilai, bool):
         return None
     if isinstance(nilai, int):
-        return nilai
-    if isinstance(nilai, float) and nilai.is_integer():
-        return int(nilai)
-    if isinstance(nilai, str) and re.fullmatch(r"-?\d+", nilai.strip()):
-        return int(nilai.strip())
-    return None
+        n = nilai
+    elif isinstance(nilai, float) and nilai.is_integer():
+        n = int(nilai)
+    elif isinstance(nilai, str) and re.fullmatch(r"-?\d{1,18}", nilai.strip()):
+        n = int(nilai.strip())
+    else:
+        return None
+    return n if abs(n) <= MAKS_QTY else None
 
 
 def _ambil_objek(teks: str) -> dict[str, Any]:

@@ -95,7 +95,8 @@ def test_urai_id_produk_karangan_menjadi_null():
 
 @pytest.mark.parametrize(
     ("mentah", "diharapkan"),
-    [(2, 2), ("3", 3), (4.0, 4), (2.5, None), ("banyak", None), (None, None), (True, None), (-1, -1), (500, 500)],
+    [(2, 2), ("3", 3), (4.0, 4), (2.5, None), ("banyak", None), (None, None), (True, None), (-1, -1), (500, 500),
+     (10_000, 10_000), (10_001, None), (10**20, None), ("99999999999999999999", None), (1e30, None), (-(10**20), None)],
 )
 def test_urai_qty(mentah, diharapkan):
     e = urai(jawab(items=[{"product_id": "p-ayam", "teks_asli": "ayam", "qty": mentah}]), IDS)
@@ -263,6 +264,22 @@ def test_impor_dengan_ekstraktor_asli_dan_llm_tiruan(db, katalog, batch, monkeyp
     assert hasil.pesanan_dibuat == 1
     order = db.scalar(select(Order))
     assert order.total == 3 * 18000  # harga dari katalog, bukan dari model
+
+
+def test_impor_dengan_jumlah_mustahil_tidak_jatuh_dan_ditandai(db, katalog, batch, monkeypatch):
+    """Jumlah raksasa dari model (atau chat) dulu membuat OverflowError di database dan menjatuhkan seluruh impor."""
+
+    async def chat(percakapan, **_):
+        teks = " ".join(p["isi"] for p in json.loads(percakapan[1]["content"])["pesan"])
+        if "ayam bakar 500" in teks:
+            return json.dumps({"intent": "pesan", "items": [{"product_id": "p-ayam", "teks_asli": "ayam", "qty": 10**20}]})
+        return json.dumps({"intent": "bukan_pesanan", "items": []})
+
+    monkeypatch.setattr(llm, "chat", chat)
+    hasil = jalankan(import_batch(db, "b-1", CONTOH, extractor=extract_orders))
+    assert hasil.pesanan_dibuat == 1
+    order = db.scalar(select(Order))
+    assert order.total == 0 and "jumlah_kosong" in order.tanda  # penjual diminta mengisi jumlahnya
 
 
 def test_impor_dibatalkan_dan_kuota_terdeteksi_saat_llm_mati(db, katalog, batch, monkeypatch):
