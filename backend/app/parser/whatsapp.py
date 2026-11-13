@@ -126,16 +126,38 @@ def _baca_kepala(baris: str) -> tuple[datetime, str] | None:
     return None
 
 
+_SEMUA_TAK_TERLIHAT = re.compile("[" + _TAK_TERLIHAT + "]")
+_MEDIA_KURUNG = re.compile(r"<[^<>\n]*(tidak disertakan|omitted)[^<>\n]*>", re.I)
+
+
 def _bersihkan_isi(isi: str) -> str:
     """Buang penanda media, penanda edit, dan karakter tak terlihat. Kosong berarti pesan dibuang."""
     baris_bersih = []
     for baris in isi.split("\n"):
         b = _DIEDIT.sub("", baris.strip(_TAK_TERLIHAT + " \t\r"))
-        if any(p.match(b) for p in _MEDIA):
+        # iPhone menulis media berketerangan dalam satu baris: "keterangan <U+200E>image omitted".
+        # Penanda di belakang U+200E dibuang, keterangannya dipertahankan.
+        # Bisa ada lebih dari satu U+200E di satu baris, jadi potong dari penanda paling belakang.
+        while True:
+            depan, pemisah, ekor = b.rpartition(_PENANDA_SISTEM_IOS)
+            if not pemisah:
+                break
+            if ekor.strip() and not _penanda_media(ekor):
+                break
+            b = depan.rstrip()
+        # Android menulisnya dalam kurung sudut di baris yang sama: "keterangan <Media omitted>".
+        b = _MEDIA_KURUNG.sub(" ", b)
+        b = re.sub(r" {2,}", " ", _SEMUA_TAK_TERLIHAT.sub("", b)).strip()
+        if _penanda_media(b):
             continue
         baris_bersih.append(b)
     hasil = "\n".join(baris_bersih).strip()
     return "" if hasil.lower().rstrip(".") in _DIHAPUS else hasil
+
+
+def _penanda_media(teks: str) -> bool:
+    teks = _SEMUA_TAK_TERLIHAT.sub("", teks).strip()
+    return bool(teks) and any(p.match(teks) for p in _MEDIA)
 
 
 def sidik_pesan(waktu: datetime, pengirim: str, isi: str, urutan: int) -> str:
