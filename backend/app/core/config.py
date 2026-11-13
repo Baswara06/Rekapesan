@@ -5,6 +5,10 @@ from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+KUNCI_BAWAAN = "ganti-dengan-string-acak-panjang"
+KUNCI_MINIMAL = 16
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=("../.env", ".env"), extra="ignore")
 
@@ -21,7 +25,7 @@ class Settings(BaseSettings):
 
     vision_model: str = ""
 
-    app_secret_key: str = "ganti-dengan-string-acak-panjang"
+    app_secret_key: str = KUNCI_BAWAAN
     demo_username: str = "demo"
     demo_password: str = ""
     jumlah_tidak_wajar_default: int = 20

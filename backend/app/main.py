@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import health, impor
+from app.api import agen, auth, batches, health, impor, orders, pembayaran, products, recap
 from app.core.config import get_settings
+from app.core.errors import pasang_penanganan_galat
+from app.core.security import require_login
 from app.db import init_db
 
 settings = get_settings()
@@ -17,6 +19,7 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(title="Rekapesan", version="0.1.0", lifespan=lifespan)
+pasang_penanganan_galat(app)
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,5 +29,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Terbuka: cek kesehatan dan login.
 app.include_router(health.router)
-app.include_router(impor.router)
+app.include_router(auth.router)
+
+# Semua yang lain wajib login (header Authorization: Bearer <token>).
+terlindungi = [Depends(require_login)]
+for modul in (impor, products, batches, orders, recap, pembayaran, agen):
+    app.include_router(modul.router, dependencies=terlindungi)

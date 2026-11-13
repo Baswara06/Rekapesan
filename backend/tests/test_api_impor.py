@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app import extractor as modul_extractor
 from app.db import Batch, get_db, init_db, make_engine
+from app.core.security import require_login
 from app.main import app
 from app.schemas import Extraction
 
@@ -31,6 +32,7 @@ def client(tmp_path, monkeypatch):
 
     monkeypatch.setattr(modul_extractor, "extract_orders", tiruan)
     app.dependency_overrides[get_db] = _db
+    app.dependency_overrides[require_login] = lambda: "demo"  # uji ini fokus ke impor, bukan login
     yield TestClient(app)
     app.dependency_overrides.clear()
     engine.dispose()
