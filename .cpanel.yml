@@ -1,0 +1,38 @@
+---
+# Deploy Rekapesan lewat cPanel Git Version Control.
+# Dijalankan saat klik "Deploy HEAD Commit" (setelah "Update from Remote").
+# Repo di server hanya tempat staging; aplikasi yang jalan ada di $APPROOT, di luar public_html.
+#
+# Susunan di server ($HOME = /home/<user cPanel>; tidak ada username atau rahasia di berkas ini):
+#   $HOME/rekapesan0api        aplikasi Python dari "Setup Python App": Application root = rekapesan0api,
+#                              URL = api.<domain> tanpa jalur, startup file = passenger_wsgi.py,
+#                              entry point = application, Python 3.11.
+#   $HOME/rekapesan0api/.env   dibuat MANUAL sekali, tidak pernah ditimpa deploy.
+#   $HOME/rekapesan0api/data   database SQLite, tidak pernah ditimpa deploy.
+#   $HOME/sample               data contoh untuk seed (app/seed.py mencarinya dua folder di atas berkasnya).
+#   $HOME/public_html          frontend hasil build (docroot domain utama).
+deployment:
+  tasks:
+    - export REPOPATH=$(pwd)
+    - export APPROOT=$HOME/rekapesan0api
+    - export API_URL=https://api.rekapesan.my.id
+    - export WEBROOT=$HOME/public_html
+    # Python dari virtualenv yang dibuat "Setup Python App".
+    - export PY=$(ls -d $HOME/virtualenv/rekapesan0api/3.*/bin/python 2>/dev/null | head -n 1)
+    - if [ -z "$PY" ]; then echo "GAGAL - virtualenv tidak ditemukan. Buat dulu lewat Setup Python App (root rekapesan0api)."; exit 1; fi
+
+    # Backend: salin lewat tar, hanya menimpa/menambah. .env, database, dan tmp di server tidak tersentuh.
+    - /bin/mkdir -p $APPROOT/data $APPROOT/tmp $HOME/sample
+    - tar -C backend -cf - --exclude='./.env' --exclude='./.env.*' --exclude='*.db' --exclude='*.sqlite3' --exclude='./tests' --exclude='./tmp' --exclude='__pycache__' --exclude='./.venv' --exclude='./.pytest_cache' . | tar -C $APPROOT -xf -
+    - tar -C sample -cf - --exclude='./asli' . | tar -C $HOME/sample -xf -
+    - $PY -m pip install --quiet -r $APPROOT/requirements.txt 'a2wsgi==1.10.*'
+
+    # Data demo: hanya dibuat kalau belum ada (app/seed.py aman dijalankan berulang).
+    - cd $APPROOT && $PY -m app.seed
+    - touch $APPROOT/tmp/restart.txt
+
+    # Frontend: dibangun di server bila npm tersedia. Bila tidak, build di laptop dengan
+    # VITE_API_BASE_URL yang sama lalu unggah isi frontend/dist ke public_html.
+    - cd $REPOPATH
+    - export NPM=$(command -v npm || ls -d /opt/alt/alt-nodejs2*/root/usr/bin/npm 2>/dev/null | tail -n 1)
+    - if [ -n "$NPM" ]; then cd $REPOPATH/frontend && $NPM ci --no-audit --no-fund && VITE_API_BASE_URL=$API_URL $NPM run build && tar -C dist -cf - . | tar -C $WEBROOT -xf - && echo "Frontend terpasang di $WEBROOT"; else echo "LEWATI frontend - npm tidak ada di server. Build di laptop lalu unggah frontend/dist."; fi
