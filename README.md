@@ -2,6 +2,8 @@
 
 > **Dari chat grup jadi rekap pesanan, tanpa salin ulang.**
 
+[![CI](https://github.com/Baswara06/Rekapesan/actions/workflows/ci.yml/badge.svg)](https://github.com/Baswara06/Rekapesan/actions/workflows/ci.yml)
+
 Perekap pesanan pre-order (PO) makanan dari grup WhatsApp untuk penjual rumahan.
 Dibuat untuk **LOGICODIX 2026** (HIMTI UNESA).
 
