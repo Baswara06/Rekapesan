@@ -4,7 +4,9 @@ Yang dijaga di sini:
 - pesan yang sudah pernah diimpor (sidik sama) dilewati, jadi impor ulang tidak membuat pesanan dobel,
 - teks disamarkan sebelum keluar ke LLM, dan pesanan aktif yang dikirim ke LLM tidak memuat harga,
 - ekstraksi dipanggil sekali per pengirim, paralel,
-- semua pesanan hasil impor berstatus `perlu_cek`: penjual yang menyetujui.
+- semua pesanan hasil impor berstatus `perlu_cek`: penjual yang menyetujui,
+- bila ekstraktor gagal untuk SEMUA pengirim (kuota habis, penyedia mati), impor dibatalkan tanpa
+  menyimpan apa pun, supaya penjual bisa mengulang. Gagal sebagian menjadi tanda `gagal_diekstrak`.
 """
 
 import asyncio
@@ -15,6 +17,7 @@ from typing import IO, Any
 
 from pydantic import BaseModel
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import get_settings
@@ -31,6 +34,21 @@ Extractor = Callable[..., Any]
 
 class BatchTidakDitemukan(LookupError):
     pass
+
+
+class EkstraksiGagalTotal(RuntimeError):
+    """Ekstraktor gagal untuk semua pengirim. Tidak ada yang disimpan, impor boleh diulang.
+
+    `kode` mengikuti kontrak API: `kuota_llm_habis` atau `llm_gagal`.
+    """
+
+    def __init__(self, kode: str) -> None:
+        super().__init__(kode)
+        self.kode = kode
+
+
+class ImporBentrok(RuntimeError):
+    """Impor lain ke batch yang sama menyimpan pesan yang sama lebih dulu. Tidak ada yang disimpan."""
 
 
 class ImportResult(BaseModel):
@@ -90,17 +108,29 @@ def pesanan_aktif_untuk_llm(order: dict[str, Any] | None) -> dict[str, Any] | No
     }
 
 
-async def _ekstrak(extractor: Extractor, kunci: asyncio.Semaphore, pesan, katalog, aktif) -> Extraction:
-    """Panggil ekstraktor untuk satu pengirim. Kegagalan apa pun menjadi `gagal_diekstrak`."""
+def _kuota_habis(exc: BaseException) -> bool:
+    """Galat batas kuota dari penyedia LLM (HTTP 429), tanpa bergantung pada pustaka tertentu."""
+    status = getattr(exc, "status_code", None) or getattr(getattr(exc, "response", None), "status_code", None)
+    return status == 429 or type(exc).__name__ == "RateLimitError"
+
+
+async def _ekstrak(
+    extractor: Extractor, kunci: asyncio.Semaphore, pesan, katalog, aktif
+) -> tuple[Extraction, BaseException | None]:
+    """Panggil ekstraktor untuk satu pengirim. Kembalikan (hasil, galat).
+
+    Kegagalan menjadi `Extraction(gagal=True)` beserta galatnya, supaya pemanggil bisa
+    membedakan gagal sebagian (tanda kuning) dari gagal total (impor dibatalkan).
+    """
     async with kunci:
         try:
             hasil = extractor(pesan, katalog, aktif)
             if inspect.isawaitable(hasil):
                 hasil = await hasil
-            return Extraction.model_validate(hasil)
+            return Extraction.model_validate(hasil), None
         except Exception as exc:  # noqa: BLE001 - satu pengirim gagal tidak boleh menggagalkan impor
             log.warning("Ekstraksi gagal untuk satu pengirim: %s", type(exc).__name__)
-            return Extraction(intent="bukan_pesanan", gagal=True)
+            return Extraction(intent="bukan_pesanan", gagal=True), exc
 
 
 def _terapkan(db: Session, order: Order, change: OrderChange) -> None:
@@ -137,8 +167,27 @@ async def import_batch(
     """Impor satu berkas ekspor atau teks tempel ke sebuah batch.
 
     `extractor` bisa diganti (uji, data demo tersimpan). Default: `app.extractor.extract_orders`.
-    Melempar `BatchTidakDitemukan` atau `FormatTidakDikenal`.
+    Melempar `BatchTidakDitemukan`, `FormatTidakDikenal`, `EkstraksiGagalTotal`, atau `ImporBentrok`.
+    Pada dua galat terakhir tidak ada yang tersimpan, jadi impor yang sama aman diulang.
     """
+    try:
+        return await _impor(db, batch_id, file_or_text, extractor, ambang_jumlah_tidak_wajar)
+    except IntegrityError as exc:
+        # Sidik unik per batch: impor lain yang berjalan bersamaan sudah menyimpan pesan ini.
+        db.rollback()
+        raise ImporBentrok(batch_id) from exc
+    except Exception:
+        db.rollback()
+        raise
+
+
+async def _impor(
+    db: Session,
+    batch_id: str,
+    file_or_text: IO[bytes] | bytes | str,
+    extractor: Extractor | None,
+    ambang_jumlah_tidak_wajar: int | None,
+) -> ImportResult:
     if extractor is None:
         from app.extractor import extract_orders as extractor  # noqa: PLC0415 - hindari impor melingkar
 
@@ -190,7 +239,12 @@ async def import_batch(
         tugas.append(
             _ekstrak(extractor, kunci, samaran, katalog_llm, pesanan_aktif_untuk_llm(order_ke_dict(aktif) if aktif else None))
         )
-    ekstraksi = await asyncio.gather(*tugas)
+    keluaran = await asyncio.gather(*tugas)
+    ekstraksi = [e for e, _ in keluaran]
+    galat = [g for _, g in keluaran if g is not None]
+    if len(galat) == len(keluaran):
+        # Tidak ada satu pun yang berhasil: ini masalah LLM, bukan isi chat. Jangan simpan apa pun.
+        raise EkstraksiGagalTotal("kuota_llm_habis" if any(_kuota_habis(g) for g in galat) else "llm_gagal")
 
     # 2) Aturan dan simpan: berurutan menurut pesan pertama, supaya hitungan stok tetap.
     disentuh: dict[str, Order] = {}
