@@ -126,16 +126,30 @@ def _baca_kepala(baris: str) -> tuple[datetime, str] | None:
     return None
 
 
+_SEMUA_TAK_TERLIHAT = re.compile("[" + _TAK_TERLIHAT + "]")
+
+
 def _bersihkan_isi(isi: str) -> str:
     """Buang penanda media, penanda edit, dan karakter tak terlihat. Kosong berarti pesan dibuang."""
     baris_bersih = []
     for baris in isi.split("\n"):
         b = _DIEDIT.sub("", baris.strip(_TAK_TERLIHAT + " \t\r"))
-        if any(p.match(b) for p in _MEDIA):
+        # iPhone menulis media berketerangan dalam satu baris: "keterangan <U+200E>image omitted".
+        # Penanda di belakang U+200E dibuang, keterangannya dipertahankan.
+        depan, pemisah, ekor = b.partition(_PENANDA_SISTEM_IOS)
+        if pemisah and _penanda_media(ekor):
+            b = depan
+        b = _SEMUA_TAK_TERLIHAT.sub("", b).strip()
+        if _penanda_media(b):
             continue
         baris_bersih.append(b)
     hasil = "\n".join(baris_bersih).strip()
     return "" if hasil.lower().rstrip(".") in _DIHAPUS else hasil
+
+
+def _penanda_media(teks: str) -> bool:
+    teks = _SEMUA_TAK_TERLIHAT.sub("", teks).strip()
+    return bool(teks) and any(p.match(teks) for p in _MEDIA)
 
 
 def sidik_pesan(waktu: datetime, pengirim: str, isi: str, urutan: int) -> str:
