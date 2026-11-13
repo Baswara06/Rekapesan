@@ -6,10 +6,9 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import { AppProvider } from "./lib/store";
 
-// Kilau kaca dinamis: satu pendengar untuk seluruh halaman, posisi jari/kursor ditulis ke variabel CSS
-// kartu yang sedang disentuh. Dimatikan bila pengguna memilih kurangi gerakan.
-const kurangiGerak = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-if (!kurangiGerak) {
+// Kilau kaca: satu pendengar untuk seluruh halaman, posisi jari/kursor ditulis ke variabel CSS kartu
+// yang sedang disentuh. Dimatikan bila pengguna memilih kurangi gerakan.
+if (!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
   let terakhir: HTMLElement | null = null;
   document.addEventListener(
     "pointermove",

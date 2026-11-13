@@ -1,7 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ambilToken, api, ApiError, aturSaatTidakTerautentikasi, simpanToken, type Batch, type Product } from "./api";
 
-export type UkuranTeks = "normal" | "besar" | "sangat_besar";
 export type Tema = "otomatis" | "terang" | "gelap";
 
 interface Toast {
@@ -33,8 +32,6 @@ interface AppState {
   toasts: Toast[];
   tutupToast: (id: number) => void;
 
-  ukuranTeks: UkuranTeks;
-  setUkuranTeks: (u: UkuranTeks) => void;
   tema: Tema;
   setTema: (t: Tema) => void;
 }
@@ -66,8 +63,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [katalog, setKatalog] = useState<Product[]>([]);
   const [versiData, setVersiData] = useState(0);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [ukuranTeks, setUkuran] = useState<UkuranTeks>(() => baca("rekapesan.ukuran", "normal"));
-  const [tema, setTemaState] = useState<Tema>(() => baca("rekapesan.tema", "otomatis"));
+  const [tema, setTemaState] = useState<Tema>(() => baca("rekapesan.tampilan", "terang"));
   const nomorToast = useRef(0);
 
   const tutupToast = useCallback((id: number) => setToasts((t) => t.filter((x) => x.id !== id)), []);
@@ -130,15 +126,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => tulis("rekapesan.batch", idAktif), [idAktif]);
 
   useEffect(() => {
-    tulis("rekapesan.ukuran", ukuranTeks);
-    document.documentElement.dataset.ukuran = ukuranTeks;
-  }, [ukuranTeks]);
-
-  useEffect(() => {
-    tulis("rekapesan.tema", tema);
+    tulis("rekapesan.tampilan", tema);
     const root = document.documentElement;
-    if (tema === "otomatis") delete root.dataset.theme;
-    else root.dataset.theme = tema === "gelap" ? "dark" : "light";
+    if (tema !== "otomatis") {
+      root.dataset.theme = tema === "gelap" ? "dark" : "light";
+      return;
+    }
+    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
+    const terapkan = () => {
+      root.dataset.theme = mq?.matches ? "dark" : "light";
+    };
+    terapkan();
+    mq?.addEventListener?.("change", terapkan);
+    return () => mq?.removeEventListener?.("change", terapkan);
   }, [tema]);
 
   const nilai = useMemo<AppState>(
@@ -159,12 +159,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       toast,
       toasts,
       tutupToast,
-      ukuranTeks,
-      setUkuranTeks: setUkuran,
       tema,
       setTema: setTemaState,
     }),
-    [masuk, login, keluar, batches, idAktif, muatBatch, batchSiap, katalog, muatKatalog, versiData, toast, toasts, tutupToast, ukuranTeks, tema],
+    [masuk, login, keluar, batches, idAktif, muatBatch, batchSiap, katalog, muatKatalog, versiData, toast, toasts, tutupToast, tema],
   );
 
   return <Ctx.Provider value={nilai}>{children}</Ctx.Provider>;

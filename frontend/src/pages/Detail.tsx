@@ -135,6 +135,8 @@ export default function Detail({ id }: { id: string }) {
     <div className="tumpuk dengan-bilah">
       <Kepala judul={order.customer.nama_tampil} sub={<LencanaStatus status={order.status} />} kembali="#/cek" />
 
+      <div className="kisi-detail">
+      <div className="kolom">
       <Kaca className="kartu kartu-total">
         <span className="label-kecil">Total dihitung dari katalog</span>
         <strong className="total-besar">{rupiah(order.total)}</strong>
@@ -155,7 +157,9 @@ export default function Detail({ id }: { id: string }) {
         </h2>
         <GelembungChat pesan={order.pesan_sumber} />
       </Kaca>
+      </div>
 
+      <div className="kolom">
       <Kaca className="kartu">
         <h2 className="judul-kartu">
           <Icon nama="ubah" /> Isi pesanan
@@ -277,6 +281,9 @@ export default function Detail({ id }: { id: string }) {
           </p>
         </Kaca>
       )}
+
+      </div>
+      </div>
 
       {berubah && bisaUbah && (
         <div className="bilah-simpan kaca" role="region" aria-label="Simpan perubahan">

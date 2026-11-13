@@ -74,7 +74,7 @@ export default function Rekap() {
             </a>
           )}
 
-          <Kaca className="kartu kartu-omzet">
+          <section className="kartu-hero">
             <span className="label-kecil">Omzet pesanan disetujui</span>
             <strong className="total-besar">{rupiah(d.rekap.omzet)}</strong>
             <div className="baris-tombol">
@@ -89,8 +89,9 @@ export default function Rekap() {
                 <span>Bagikan</span>
               </a>
             </div>
-          </Kaca>
+          </section>
 
+          <div className="kisi-rekap">
           <Kaca className="kartu">
             <h2 className="judul-kartu">
               <Icon nama="katalog" /> Yang harus dimasak
@@ -219,6 +220,7 @@ export default function Rekap() {
               </ul>
             )}
           </Kaca>
+          </div>
         </>
       ) : null}
     </div>

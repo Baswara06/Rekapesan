@@ -19,6 +19,13 @@ export function tanggalPanjang(iso: string | null | undefined): string {
   return d.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" });
 }
 
+export function tanggalPendek(iso: string | null | undefined): string {
+  if (!iso) return "-";
+  const d = new Date(`${iso.slice(0, 10)}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+}
+
 export function jamPesan(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";

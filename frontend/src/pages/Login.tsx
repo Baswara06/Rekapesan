@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Icon } from "../components/Icon";
+import { TandaLogo, TeksLogo } from "../components/Logo";
 import { Kaca, Tombol } from "../components/ui";
 import { ApiError } from "../lib/api";
 import { useApp } from "../lib/store";
@@ -29,10 +30,10 @@ export default function Login() {
   return (
     <main className="login" id="isi">
       <div className="login-merek">
-        <div className="logo" aria-hidden="true">
-          <Icon nama="chat" ukuran={30} />
-        </div>
-        <h1 className="judul-merek">Rekapesan</h1>
+        <TandaLogo ukuran={72} className="logo-login" />
+        <h1 className="judul-merek">
+          <TeksLogo />
+        </h1>
         <p className="login-slogan">Dari chat grup jadi rekap pesanan, tanpa salin ulang.</p>
       </div>
 
