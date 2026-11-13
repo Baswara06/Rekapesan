@@ -1,5 +1,17 @@
 """Fixture bersama: database SQLite sementara per uji dan katalog contoh."""
 
+import os
+
+# Uji tidak boleh bergantung pada isi .env pengembang: tanpa ini, uji yang mengandalkan "LLM belum
+# dikonfigurasi" memanggil model sungguhan (lambat, berbayar, hasil berubah-ubah) dan hanya lolos di CI.
+# Jalankan `RUN_LIVE_EVAL=1 pytest tests/eval/test_live.py` untuk sengaja memakai LLM dari .env.
+if not os.environ.get("RUN_LIVE_EVAL"):
+    for _kunci in (
+        "LLM_API_KEY", "LLM_BASE_URL", "LLM_MODEL",
+        "LLM_FALLBACK_API_KEY", "LLM_FALLBACK_BASE_URL", "LLM_FALLBACK_MODEL", "VISION_MODEL",
+    ):
+        os.environ[_kunci] = ""
+
 import pytest
 from sqlalchemy.orm import Session
 
