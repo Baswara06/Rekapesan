@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from app.db import Batch, Customer, MessageRow, Order, OrderItem
 from app.parser import FormatTidakDikenal
 from app.schemas import ExtractedItem, Extraction
-from app.services import BatchTidakDitemukan, import_batch
+from app.services import BatchTidakDitemukan, EkstraksiGagalTotal, ImporBentrok, import_batch
 
 CONTOH = (Path(__file__).resolve().parents[2] / "sample" / "ekspor-contoh.txt").read_bytes()
 
@@ -125,13 +125,48 @@ def test_ubah_dan_batal_lewat_impor_berikutnya(db, katalog, batch):
     assert len(rina.pesan_sumber) == 3
 
 
-def test_ekstraktor_gagal_menjadi_tanda_gagal_diekstrak(db, katalog, batch):
-    async def rusak(sender_messages, catalog, active_order=None):
-        raise RuntimeError("kuota habis")
+DUA_PENGIRIM = "12/11/26 09.15 - Bu Rina: ayam bakar 2\n12/11/26 09.16 - Pak Anton: es teh 1\n"
 
-    hasil = jalankan(db, "12/11/26 09.15 - Bu Rina: ayam bakar 2\n", rusak)
-    assert (hasil.pesan_baru, hasil.pesanan_dibuat, hasil.perlu_cek) == (1, 1, 1)
-    assert "gagal_diekstrak" in pesanan(db, "Bu Rina").tanda
+
+class Kuota(Exception):
+    status_code = 429
+
+
+def test_gagal_sebagian_menjadi_tanda_gagal_diekstrak(db, katalog, batch):
+    async def separuh(sender_messages, catalog, active_order=None):
+        if sender_messages[0].pengirim == "Bu Rina":
+            raise RuntimeError("keluaran model tidak sah")
+        return Extraction(intent="pesan", items=[it("p-teh", 1, "es teh 1")], jam="12", alamat="x")
+
+    hasil = jalankan(db, DUA_PENGIRIM, separuh)
+    assert (hasil.pesan_baru, hasil.pesanan_dibuat, hasil.perlu_cek) == (2, 2, 1)
+    assert pesanan(db, "Bu Rina").tanda == ["gagal_diekstrak"] and pesanan(db, "Pak Anton").tanda == []
+
+
+@pytest.mark.parametrize(("galat", "kode"), [(RuntimeError("mati"), "llm_gagal"), (Kuota(), "kuota_llm_habis")])
+def test_gagal_total_tidak_menyimpan_apa_pun_dan_bisa_diulang(db, katalog, batch, galat, kode):
+    async def rusak(sender_messages, catalog, active_order=None):
+        raise galat
+
+    with pytest.raises(EkstraksiGagalTotal) as info:
+        jalankan(db, DUA_PENGIRIM, rusak)
+    assert info.value.kode == kode
+    for tabel in (MessageRow, Order, Customer):
+        assert db.scalar(select(func.count()).select_from(tabel)) == 0
+
+    # setelah LLM pulih, berkas yang sama diimpor ulang dan diproses penuh
+    pulih = Tiruan({n: Extraction(intent="pesan", items=[it("p-teh", 1, "x")]) for n in ("Bu Rina", "Pak Anton")})
+    hasil = jalankan(db, DUA_PENGIRIM, pulih)
+    assert (hasil.pesan_baru, hasil.pesan_dilewati, hasil.pesanan_dibuat) == (2, 0, 2)
+
+
+def test_impor_bersamaan_menjadi_impor_bentrok(db, katalog, batch, monkeypatch):
+    jalankan(db, DUA_PENGIRIM, Tiruan({n: Extraction(intent="bukan_pesanan") for n in ("Bu Rina", "Pak Anton")}))
+    # Tiru impor kedua yang membaca DB sebelum impor pertama selesai: sidik lama dianggap belum ada.
+    monkeypatch.setattr("app.services.import_service.saring_baru", lambda pesan, _ada: pesan)
+    with pytest.raises(ImporBentrok):
+        jalankan(db, DUA_PENGIRIM, Tiruan())
+    assert db.scalar(select(func.count()).select_from(MessageRow)) == 2  # tidak ada baris ganda
 
 
 def test_stok_dihitung_lintas_pesanan_dalam_satu_impor(db, katalog, batch):

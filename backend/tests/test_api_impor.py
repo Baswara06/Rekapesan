@@ -54,3 +54,34 @@ def test_galat_seragam(client):
     assert res.status_code == 400 and res.json()["error"]["kode"] == "format_file_tidak_dikenal"
     res = client.post("/api/batches/b-1/import", json={})
     assert res.status_code == 422 and res.json()["error"]["kode"] == "validasi_gagal"
+
+
+def test_llm_mati_total_menjadi_llm_gagal_dan_tidak_menyimpan(client, monkeypatch):
+    async def rusak(sender_messages, catalog, active_order=None):
+        raise RuntimeError("penyedia mati")
+
+    monkeypatch.setattr(modul_extractor, "extract_orders", rusak)
+    res = client.post("/api/batches/b-1/import", json={"text": TEKS})
+    assert res.status_code == 502 and res.json()["error"]["kode"] == "llm_gagal"
+
+    class Kuota(Exception):
+        status_code = 429
+
+    async def habis(sender_messages, catalog, active_order=None):
+        raise Kuota
+
+    monkeypatch.setattr(modul_extractor, "extract_orders", habis)
+    res = client.post("/api/batches/b-1/import", json={"text": TEKS})
+    assert res.status_code == 429 and res.json()["error"]["kode"] == "kuota_llm_habis"
+
+    async def pulih(sender_messages, catalog, active_order=None):
+        return Extraction(intent="bukan_pesanan")
+
+    monkeypatch.setattr(modul_extractor, "extract_orders", pulih)
+    assert client.post("/api/batches/b-1/import", json={"text": TEKS}).json()["pesan_baru"] == 1
+
+
+def test_berkas_terlalu_besar_ditolak(client, monkeypatch):
+    monkeypatch.setattr("app.api.impor.MAKS_UKURAN_BYTE", 10)
+    res = client.post("/api/batches/b-1/import", files={"file": ("chat.txt", TEKS.encode(), "text/plain")})
+    assert res.status_code == 413 and res.json()["error"]["kode"] == "validasi_gagal"
