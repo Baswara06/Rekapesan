@@ -6,6 +6,7 @@ mengulang. Galat 429 diprioritaskan agar API bisa menjawab `kuota_llm_habis`.
 """
 
 import logging
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -62,12 +63,31 @@ def _kuota_habis(exc: BaseException) -> bool:
     return getattr(exc, "status_code", None) == 429 or type(exc).__name__ == "RateLimitError"
 
 
-async def chat(pesan: list[dict[str, Any]], model: str | None = None, max_tokens: int = 1024) -> str:
-    """Kirim percakapan ke penyedia utama, lalu cadangan. Kembalikan teks jawaban.
+async def _panggil_alat(
+    p: Penyedia, pesan: list[dict[str, Any]], alat: list[dict[str, Any]] | None, max_tokens: int
+) -> dict[str, Any]:
+    klien = AsyncOpenAI(base_url=p.base_url, api_key=p.api_key, timeout=TIMEOUT_DETIK, max_retries=0)
+    try:
+        kwargs: dict[str, Any] = {"tools": alat} if alat else {}
+        res = await klien.chat.completions.create(
+            model=p.model, messages=pesan, temperature=0, max_tokens=max_tokens, **kwargs
+        )
+    finally:
+        await klien.close()
+    if not res.choices:
+        raise RuntimeError("Penyedia mengembalikan jawaban kosong.")
+    m = res.choices[0].message
+    return {
+        "content": m.content,
+        "tool_calls": [
+            {"id": t.id, "name": t.function.name, "arguments": t.function.arguments}
+            for t in (m.tool_calls or [])
+        ],
+    }
 
-    Melempar `LLMTidakTersedia` bila tidak ada penyedia, atau galat terakhir (galat 429 didahulukan)
-    bila semua penyedia gagal.
-    """
+
+async def _dengan_cadangan(aksi: Callable[[Penyedia], Awaitable[Any]], model: str | None) -> Any:
+    """Jalankan `aksi` pada penyedia utama, lalu cadangan. Galat 429 didahulukan bila semuanya gagal."""
     penyedia = daftar_penyedia(get_settings(), model)
     if not penyedia:
         raise LLMTidakTersedia("LLM belum dikonfigurasi. Isi LLM_BASE_URL, LLM_API_KEY, dan LLM_MODEL di .env.")
@@ -75,8 +95,24 @@ async def chat(pesan: list[dict[str, Any]], model: str | None = None, max_tokens
     galat: list[BaseException] = []
     for p in penyedia:
         try:
-            return await _panggil(p, pesan, max_tokens)
+            return await aksi(p)
         except Exception as exc:  # noqa: BLE001 - apa pun kegagalan penyedia memicu cadangan
             log.warning("Penyedia %s gagal: %s", p.nama, type(exc).__name__)
             galat.append(exc)
     raise next((g for g in galat if _kuota_habis(g)), galat[-1])
+
+
+async def chat(pesan: list[dict[str, Any]], model: str | None = None, max_tokens: int = 1024) -> str:
+    """Kirim percakapan ke penyedia utama, lalu cadangan. Kembalikan teks jawaban.
+
+    Melempar `LLMTidakTersedia` bila tidak ada penyedia, atau galat terakhir (galat 429 didahulukan)
+    bila semua penyedia gagal.
+    """
+    return await _dengan_cadangan(lambda p: _panggil(p, pesan, max_tokens), model)
+
+
+async def chat_alat(
+    pesan: list[dict[str, Any]], alat: list[dict[str, Any]] | None, max_tokens: int = 1024
+) -> dict[str, Any]:
+    """Seperti `chat`, tetapi dengan tool calling. Mengembalikan {"content", "tool_calls": [{id, name, arguments}]}."""
+    return await _dengan_cadangan(lambda p: _panggil_alat(p, pesan, alat, max_tokens), None)
