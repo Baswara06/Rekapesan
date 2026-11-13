@@ -24,14 +24,32 @@ from app.db import (
     Batch,
     Order,
     OrderItem,
+    Payment,
     Product,
     get_db,
 )
-from app.rules import beri_harga, hitung_total, normalisasi_jam, qty_per_produk, tanda_pesanan
-from app.schemas import ExtractedItem
+from app.rules import (
+    beri_harga,
+    hitung_total,
+    normalisasi_jam,
+    qty_per_produk,
+    tanda_pesanan,
+    validasi_product_id,
+)
+from app.schemas import ExtractedItem, Extraction
 from app.services.import_service import katalog_untuk_rules, order_ke_dict
 
 router = APIRouter(prefix="/api")
+
+# Perpindahan status yang boleh lewat PATCH. `dibayar` hanya lewat `payment-confirm` (penjual mengonfirmasi),
+# pesanan batal hanya bisa dibuka lagi ke `perlu_cek`, dan `dikirim` tidak bisa dibatalkan atau dimundurkan.
+PINDAH_STATUS: dict[str, set[str]] = {
+    "perlu_cek": {"dikonfirmasi", "batal"},
+    "dikonfirmasi": {"perlu_cek", "batal", "dikirim"},
+    "dibayar": {"dikonfirmasi", "dikirim"},
+    "dikirim": set(),
+    "batal": {"perlu_cek"},
+}
 
 
 class ItemIn(BaseModel):
@@ -131,13 +149,15 @@ def ubah_pesanan(order_id: str, body: OrderPatch, db: Session = Depends(get_db))
 
     if body.items is not None:
         katalog = katalog_untuk_rules(list(db.scalars(select(Product))))
-        baru = beri_harga(
-            [
+        diminta = Extraction(
+            intent="ubah",
+            items=[
                 ExtractedItem(product_id=i.product_id, teks_asli=i.teks_asli.strip(), qty=i.qty, catatan_item=i.catatan_item)
                 for i in body.items
             ],
-            katalog,
         )
+        # Menu yang tidak ada atau sudah nonaktif dijadikan None, sama seperti jalur impor.
+        baru = beri_harga(validasi_product_id(diminta, katalog).items, katalog)
         order.items.clear()
         db.flush()
         for it in baru:
@@ -155,7 +175,14 @@ def ubah_pesanan(order_id: str, body: OrderPatch, db: Session = Depends(get_db))
         order.alamat = _bersih(body.alamat)
     if "catatan" in diisi:
         order.catatan = _bersih(body.catatan)
-    if body.status is not None:
+    if body.status is not None and body.status != order.status:
+        if body.status == "dibayar":
+            raise validasi("Tandai lunas lewat payment-confirm, bukan lewat PATCH status.", status=409)
+        if body.status not in PINDAH_STATUS[order.status]:
+            raise validasi(f"Status {order.status} tidak bisa langsung menjadi {body.status}.", status=409)
+        if order.status == "dibayar":
+            for p in db.scalars(select(Payment).where(Payment.order_id == order.id)):
+                p.dikonfirmasi = False  # pelunasan dibatalkan penjual
         order.status = body.status
 
     _hitung_ulang(db, order)

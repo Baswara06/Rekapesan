@@ -137,3 +137,44 @@ def test_semua_endpoint_wajib_login(tamu, pesanan_contoh):
         ("get", "/api/batches"),
     ]:
         assert getattr(tamu, metode)(url).status_code == 401, (metode, url)
+
+
+def test_patch_status_tidak_bisa_melompati_aturan(client, pesanan_contoh):
+    budi = id_pesanan(client, "Mas Budi")
+    client.post(f"/api/orders/{budi}/reject")
+
+    # Pesanan batal tidak bisa langsung dibayar atau dikirim; hanya bisa dibuka lagi ke perlu_cek.
+    for tujuan in ("dibayar", "dikonfirmasi", "dikirim"):
+        res = client.patch(f"/api/orders/{budi}", json={"status": tujuan})
+        assert res.status_code == 409 and res.json()["error"]["kode"] == "validasi_gagal", tujuan
+    assert client.get(f"/api/orders/{budi}").json()["status"] == "batal"
+    assert client.patch(f"/api/orders/{budi}", json={"status": "perlu_cek"}).json()["status"] == "perlu_cek"
+
+    # dibayar hanya lewat payment-confirm, dari status apa pun.
+    rina = id_pesanan(client, "Bu Rina")
+    res = client.patch(f"/api/orders/{rina}", json={"status": "dibayar"})
+    assert res.status_code == 409 and "payment-confirm" in res.json()["error"]["pesan"]
+    assert client.get(f"/api/orders/{rina}").json()["status"] == "perlu_cek"
+
+
+def test_patch_status_alur_normal_dan_pembatalan_lunas(client, pesanan_contoh):
+    rina = id_pesanan(client, "Bu Rina")
+    assert client.patch(f"/api/orders/{rina}", json={"status": "dikonfirmasi"}).json()["status"] == "dikonfirmasi"
+    client.post(f"/api/orders/{rina}/payment-confirm")
+    assert client.get(f"/api/orders/{rina}").json()["status"] == "dibayar"
+    # penjual salah tandai lunas: boleh dimundurkan ke dikonfirmasi, lalu dikirim
+    assert client.patch(f"/api/orders/{rina}", json={"status": "dikonfirmasi"}).json()["status"] == "dikonfirmasi"
+    assert client.patch(f"/api/orders/{rina}", json={"status": "dikirim"}).json()["status"] == "dikirim"
+    # dikirim tidak bisa dibatalkan atau dimundurkan
+    for tujuan in ("batal", "dikonfirmasi", "perlu_cek"):
+        assert client.patch(f"/api/orders/{rina}", json={"status": tujuan}).status_code == 409
+    # status sama = tanpa perubahan
+    assert client.patch(f"/api/orders/{rina}", json={"status": "dikirim"}).status_code == 200
+
+
+def test_menu_nonaktif_diperlakukan_tak_dikenal_saat_penjual_mengubah_item(client, pesanan_contoh):
+    client.delete("/api/products/p-teh")  # menonaktifkan Es Teh
+    rina = id_pesanan(client, "Bu Rina")
+    o = client.patch(f"/api/orders/{rina}", json={"items": [{"product_id": "p-teh", "teks_asli": "es teh", "qty": 2}]}).json()
+    assert o["items"][0]["product_id"] is None and o["items"][0]["harga_satuan"] is None
+    assert "item_tidak_dikenal" in o["tanda"] and o["total"] == 0
