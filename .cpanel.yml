@@ -35,4 +35,6 @@ deployment:
     # VITE_API_BASE_URL yang sama lalu unggah isi frontend/dist ke public_html.
     - cd $REPOPATH
     - export NPM=$(command -v npm || ls -d /opt/alt/alt-nodejs2*/root/usr/bin/npm 2>/dev/null | tail -n 1)
+    # npm dari /opt/alt memakai "node" pertama di PATH, jadi foldernya didahulukan.
+    - if [ -n "$NPM" ]; then export PATH=$(dirname $NPM):$PATH; fi
     - if [ -n "$NPM" ]; then cd $REPOPATH/frontend && $NPM ci --no-audit --no-fund && VITE_API_BASE_URL=$API_URL $NPM run build && tar -C dist -cf - . | tar -C $WEBROOT -xf - && echo "Frontend terpasang di $WEBROOT"; else echo "LEWATI frontend - npm tidak ada di server. Build di laptop lalu unggah frontend/dist."; fi
