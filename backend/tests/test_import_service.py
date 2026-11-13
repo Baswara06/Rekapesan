@@ -197,3 +197,25 @@ def test_hapus_batch_ikut_menghapus_pesan_mentah(db, katalog, batch):
     db.commit()
     for tabel in (MessageRow, Order, OrderItem, Customer):
         assert db.scalar(select(func.count()).select_from(tabel)) == 0
+
+
+def test_ubah_pesanan_awal_lewat_impor_tidak_kena_stok_dari_pesanan_belakangan(db, katalog, batch):
+    jalankan(db, CONTOH, Tiruan())  # Bu Rina 3 ayam, Pak Anton 1 ayam, Mas Budi 500 ayam (stok 30)
+    hasil = jalankan(
+        db,
+        "13/11/26 07.00 - Bu Rina: jadi 4 ya ayamnya\n",
+        Tiruan({"Bu Rina": Extraction(intent="ubah", items=[it("p-ayam", 4, "ayam 4")], jam="12")}),
+    )
+    assert hasil.pesanan_diubah == 1
+    assert pesanan(db, "Bu Rina").tanda == []  # masuk lebih dulu dari Mas Budi
+    assert "stok_kurang" in pesanan(db, "Mas Budi").tanda
+
+
+def test_batal_lewat_impor_melepas_tanda_stok_pesanan_sesudahnya(db, katalog, batch):
+    teks = "12/11/26 09.00 - A: lodeh 6\n12/11/26 09.01 - B: lodeh 6\n"
+    lodeh6 = Extraction(intent="pesan", items=[it("p-lodeh", 6, "lodeh 6")], jam="12", alamat="x")
+    jalankan(db, teks, Tiruan({"A": lodeh6, "B": lodeh6}))
+    assert pesanan(db, "B").tanda == ["stok_kurang"]
+    jalankan(db, "12/11/26 10.00 - A: batal ya\n", Tiruan({"A": Extraction(intent="batal")}))
+    db.expire_all()
+    assert pesanan(db, "B").tanda == []

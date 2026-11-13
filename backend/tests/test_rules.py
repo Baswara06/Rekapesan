@@ -1,6 +1,6 @@
 import pytest
 
-from app.rules import apply_intent, hitung_total, normalisasi_jam, sisa_stok
+from app.rules import apply_intent, atur_tanda, hitung_total, normalisasi_jam, sisa_stok
 from app.schemas import ExtractedItem, Extraction
 
 KATALOG = {
@@ -144,3 +144,9 @@ def test_hitung_total_dan_sisa_stok():
 )
 def test_normalisasi_jam(masuk, keluar):
     assert normalisasi_jam(masuk) == keluar
+
+
+def test_atur_tanda_memasang_dan_melepas_tanpa_mengganggu_tanda_lain():
+    assert atur_tanda(["jam_kosong"], "stok_kurang", True) == ["stok_kurang", "jam_kosong"]
+    assert atur_tanda(["stok_kurang", "jam_kosong"], "stok_kurang", False) == ["jam_kosong"]
+    assert atur_tanda([], "stok_kurang", False) == []

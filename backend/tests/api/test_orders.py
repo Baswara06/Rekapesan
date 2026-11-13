@@ -63,15 +63,33 @@ def test_ubah_jam_alamat_catatan_membersihkan_tanda(client, pesanan_contoh):
     assert res.status_code == 422 and res.json()["error"]["kode"] == "validasi_gagal"
 
 
-def test_stok_dihitung_dari_pesanan_lain_saat_penjual_mengubah(client, pesanan_contoh):
-    # Mas Budi sudah memesan 500 ayam bakar (stok 30). Menambah ayam ke Bu Rina tetap kena stok_kurang.
+def tanda(client, nama):
+    return client.get(f"/api/orders/{id_pesanan(client, nama)}").json()["tanda"]
+
+
+def test_stok_menurut_urutan_masuk_saat_penjual_mengubah(client, pesanan_contoh):
+    # Urutan masuk: Bu Rina, Pak Anton, lalu Mas Budi (500 ayam bakar, stok 30).
+    # Pesanan Budi yang masuk belakangan tidak boleh membuat Bu Rina ikut kena stok_kurang.
     oid = id_pesanan(client, "Bu Rina")
-    o = client.patch(f"/api/orders/{oid}", json={"items": [{"product_id": "p-ayam", "teks_asli": "ayam", "qty": 1}]}).json()
-    assert "stok_kurang" in o["tanda"]
-    # Setelah Budi ditolak, stok tersedia lagi.
-    client.post(f"/api/orders/{id_pesanan(client, 'Mas Budi')}/reject")
-    o = client.patch(f"/api/orders/{oid}", json={"alamat": "Blok C"}).json()  # memicu hitung ulang
-    assert "stok_kurang" not in o["tanda"]
+    o = client.patch(f"/api/orders/{oid}", json={"jam_kirim": "12"}).json()
+    assert o["tanda"] == []
+    assert "stok_kurang" in tanda(client, "Mas Budi")
+    # Sekarang "setujui semua yang bersih" benar-benar menyetujui Bu Rina.
+    assert client.post("/api/batches/b-1/orders/approve-clean").json() == {"disetujui": 1, "masih_bertanda": 2}
+
+
+def test_pesanan_awal_yang_besar_menandai_pesanan_sesudahnya_dan_dilepas_saat_ditolak(client, pesanan_contoh):
+    # Bu Rina (masuk pertama) diubah menjadi 30 ayam: stok habis, jadi Pak Anton (1 ayam) kena stok_kurang.
+    rina = id_pesanan(client, "Bu Rina")
+    o = client.patch(f"/api/orders/{rina}", json={"items": [{"product_id": "p-ayam", "teks_asli": "ayam", "qty": 30}]}).json()
+    assert "stok_kurang" not in o["tanda"]  # 30 dari 30 masih cukup
+    assert "stok_kurang" in tanda(client, "Pak Anton")
+    # Begitu pesanan Bu Rina ditolak, tanda Pak Anton lepas sendiri tanpa perlu diubah dulu.
+    client.post(f"/api/orders/{rina}/reject")
+    assert "stok_kurang" not in tanda(client, "Pak Anton")
+    # Dibuka lagi lewat PATCH status: tanda Pak Anton kembali.
+    client.patch(f"/api/orders/{rina}", json={"status": "perlu_cek"})
+    assert "stok_kurang" in tanda(client, "Pak Anton")
 
 
 def test_setujui_tolak_dan_aturan_status(client, pesanan_contoh):
