@@ -200,7 +200,7 @@ Inisial tim:
 | Nama | Inisial |
 | --- | --- |
 | Raihan | RWB |
-| Satria | _isi_ |
+| Satria | SFA |
 | Pangeran | _isi_ |
 | Amad | _isi_ |
 
