@@ -57,7 +57,7 @@ export default function Tanya() {
   }
 
   return (
-    <div className="tumpuk halaman-tanya">
+    <div className="tumpuk halaman-tanya halaman-sempit">
       <Kepala judul="Tanya pesanan" sub="AI hanya membaca data pesanan, tidak bisa mengubah apa pun." kembali="#/lainnya" />
       {batches.length === 0 ? <PilihBatch /> : <PilihBatch ringkas />}
 

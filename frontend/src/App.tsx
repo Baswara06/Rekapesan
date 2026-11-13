@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Icon, type NamaIkon } from "./components/Icon";
+import { TandaLogo, TeksLogo } from "./components/Logo";
 import { Toasts } from "./components/ui";
 import { api } from "./lib/api";
 import { useRute } from "./lib/router";
@@ -23,6 +24,16 @@ const NAV: { path: string; label: string; ikon: NamaIkon; cocok: string[] }[] = 
   { path: "/lainnya", label: "Lainnya", ikon: "lainnya", cocok: ["lainnya", "katalog", "tanya", "pengaturan"] },
 ];
 
+/** Navigasi bilah atas di layar lebar: semua layar utama terlihat tanpa menu "Lainnya". */
+const NAV_ATAS: { path: string; label: string; cocok: string[] }[] = [
+  { path: "/", label: "Beranda", cocok: [""] },
+  { path: "/impor", label: "Impor", cocok: ["impor"] },
+  { path: "/cek", label: "Cek pesanan", cocok: ["cek", "pesanan"] },
+  { path: "/rekap", label: "Rekap", cocok: ["rekap"] },
+  { path: "/tanya", label: "Tanya AI", cocok: ["tanya"] },
+  { path: "/katalog", label: "Katalog", cocok: ["katalog"] },
+];
+
 function useJumlahPerluCek(): number | null {
   const { batchAktif, versiData } = useApp();
   const [n, setN] = useState<number | null>(null);
@@ -41,7 +52,7 @@ function useJumlahPerluCek(): number | null {
 }
 
 export default function App() {
-  const { masuk } = useApp();
+  const { masuk, batchAktif } = useApp();
   const rute = useRute();
   const perluCek = useJumlahPerluCek();
   const [online, setOnline] = useState(() => navigator.onLine);
@@ -60,7 +71,6 @@ export default function App() {
   if (!masuk) {
     return (
       <>
-        <Latar />
         <Login />
         <Toasts />
       </>
@@ -101,27 +111,59 @@ export default function App() {
       halaman = <Beranda perluCek={perluCek} />;
   }
 
+
   return (
     <>
-      <Latar />
       <a href="#isi" className="lewati">
         Lompat ke isi
       </a>
       {!online && (
         <div className="pita-offline" role="status">
-          <Icon nama="info" ukuran={18} /> Sedang offline. Data terakhir tetap bisa dilihat, perubahan menunggu internet.
+          <Icon nama="info" ukuran={16} /> Sedang offline. Data terakhir tetap bisa dilihat, perubahan menunggu internet.
         </div>
       )}
+      <header className="bilah-atas-wrap">
+        <div className="bilah-atas">
+          <a href="#/" className="merek" aria-label="Rekapesan, ke beranda">
+            <TandaLogo ukuran={30} />
+            <TeksLogo />
+          </a>
+          <nav className="nav-atas" aria-label="Menu utama">
+            {NAV_ATAS.map((n) => {
+              const aktif = n.cocok.includes(s0 ?? "");
+              return (
+                <a key={n.path} href={`#${n.path}`} className={aktif ? "aktif" : ""} aria-current={aktif ? "page" : undefined}>
+                  {n.label}
+                  {n.path === "/cek" && perluCek ? <span className="hitung">{perluCek > 99 ? "99+" : perluCek}</span> : null}
+                </a>
+              );
+            })}
+          </nav>
+          <div className="bilah-kanan">
+            {batchAktif && (
+              <a href="#/" className="chip-po" title={`PO aktif: ${batchAktif.nama}`}>
+                <Icon nama="kalender" ukuran={15} />
+                <span>{batchAktif.nama}</span>
+              </a>
+            )}
+            <a href="#/pengaturan" className="tombol tombol-hantu tombol-ikon" aria-label="Pengaturan">
+              <Icon nama="pengaturan" ukuran={19} />
+            </a>
+          </div>
+        </div>
+      </header>
       <main id="isi" className="isi" tabIndex={-1}>
-        {halaman}
+        <div key={rute.path} className="masuk-halaman">
+          {halaman}
+        </div>
       </main>
-      <nav className="nav-bawah kaca" aria-label="Menu utama">
+      <nav className="nav-bawah" aria-label="Menu utama (bawah)">
         {NAV.map((n) => {
           const aktif = n.cocok.includes(s0 ?? "");
           return (
             <a key={n.path} href={`#${n.path}`} className={`nav-item ${aktif ? "aktif" : ""}`} aria-current={aktif ? "page" : undefined}>
               <span className="nav-ikon">
-                <Icon nama={n.ikon} ukuran={24} />
+                <Icon nama={n.ikon} ukuran={21} />
                 {n.path === "/cek" && perluCek ? (
                   <span className="nav-lencana" aria-label={`${perluCek} pesanan perlu dicek`}>
                     {perluCek > 99 ? "99+" : perluCek}
@@ -135,16 +177,5 @@ export default function App() {
       </nav>
       <Toasts />
     </>
-  );
-}
-
-/** Latar gradien dengan gumpalan warna yang bergerak pelan, sumber cahaya untuk efek kaca. */
-function Latar() {
-  return (
-    <div className="latar" aria-hidden="true">
-      <span className="gumpal g1" />
-      <span className="gumpal g2" />
-      <span className="gumpal g3" />
-    </div>
   );
 }

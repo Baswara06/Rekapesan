@@ -88,7 +88,7 @@ export default function Impor({ rute }: { rute: Rute }) {
   const siap = !!batchAktif && (mode === "tempel" ? teks.trim().length > 0 : !!berkas);
 
   return (
-    <div className="tumpuk">
+    <div className="tumpuk halaman-sempit">
       <Kepala judul="Masukkan chat" sub="Langkah 1 dari 3" />
       <PilihBatch ringkas />
 

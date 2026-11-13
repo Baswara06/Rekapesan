@@ -3,13 +3,7 @@ import { Icon, type NamaIkon } from "../components/Icon";
 import { Kaca, Kepala, Konfirmasi, Tombol } from "../components/ui";
 import { api, ApiError } from "../lib/api";
 import { tanggalPanjang } from "../lib/format";
-import { useApp, type Tema, type UkuranTeks } from "../lib/store";
-
-const UKURAN: { id: UkuranTeks; label: string; contoh: string }[] = [
-  { id: "normal", label: "Biasa", contoh: "Aa" },
-  { id: "besar", label: "Besar", contoh: "Aa" },
-  { id: "sangat_besar", label: "Sangat besar", contoh: "Aa" },
-];
+import { useApp, type Tema } from "../lib/store";
 
 const TEMA: { id: Tema; label: string; ikon: NamaIkon }[] = [
   { id: "otomatis", label: "Ikuti HP", ikon: "hp" },
@@ -18,31 +12,12 @@ const TEMA: { id: Tema; label: string; ikon: NamaIkon }[] = [
 ];
 
 export default function Pengaturan() {
-  const { ukuranTeks, setUkuranTeks, tema, setTema, batches, muatBatch, keluar, toast, dataBerubah } = useApp();
+  const { tema, setTema, batches, muatBatch, keluar, toast, dataBerubah } = useApp();
   const [hapus, setHapus] = useState<{ id: string; nama: string } | null>(null);
 
   return (
-    <div className="tumpuk">
+    <div className="tumpuk halaman-sempit">
       <Kepala judul="Pengaturan" kembali="#/lainnya" />
-
-      <Kaca className="kartu">
-        <fieldset className="pilihan-grup">
-          <legend className="judul-kartu">
-            <Icon nama="teks" /> Ukuran huruf
-          </legend>
-          <div className="pilihan-kisi">
-            {UKURAN.map((u, i) => (
-              <label key={u.id} className={`pilihan ${ukuranTeks === u.id ? "aktif" : ""}`}>
-                <input type="radio" name="ukuran" value={u.id} checked={ukuranTeks === u.id} onChange={() => setUkuranTeks(u.id)} />
-                <span className="pilihan-contoh" style={{ fontSize: `${1.1 + i * 0.3}rem` }} aria-hidden="true">
-                  {u.contoh}
-                </span>
-                <span>{u.label}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      </Kaca>
 
       <Kaca className="kartu">
         <fieldset className="pilihan-grup">

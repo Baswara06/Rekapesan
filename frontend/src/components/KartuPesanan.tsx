@@ -112,7 +112,7 @@ export function KartuPesanan({
       {bertanda && (
         <div className="baris-tanda" aria-label="Tanda kuning">
           {order.tanda.map((t) => (
-            <ChipTanda key={t} kode={t} rinci />
+            <ChipTanda key={t} kode={t} />
           ))}
         </div>
       )}
