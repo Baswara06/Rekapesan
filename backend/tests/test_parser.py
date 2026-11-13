@@ -145,3 +145,21 @@ def test_iphone_inggris_media_berketerangan_dan_pesan_sistem():
 def test_karakter_tak_terlihat_di_tengah_isi_dibuang_tanpa_memotong_teks():
     teks = "12/11/26 09.15 - Bu Rina: ayam \u200ebakar 2, tolong jangan image omitted ya\n"
     assert pecah_pesan(teks)[0].isi == "ayam bakar 2, tolong jangan image omitted ya"
+
+
+def test_android_media_berketerangan_di_baris_yang_sama():
+    teks = (
+        "12/11/26 09.15 - Bu Rina: ayam bakar 2 <Media omitted>\n"
+        "12/11/26 09.16 - Pak Anton: <Media tidak disertakan> lodeh 1 ya\n"
+        "12/11/26 09.17 - Pak Anton: <Media omitted>\n"
+    )
+    assert [p.isi for p in pecah_pesan(teks)] == ["ayam bakar 2", "lodeh 1 ya"]
+
+
+def test_iphone_dua_penanda_tak_terlihat_dalam_satu_baris():
+    teks = (
+        "[12/11/26, 09.15.40] Bu Rina: ayam bakar 2 \u200e\u200eimage omitted\n"
+        "[12/11/26, 09.16.40] Bu Rina: es teh 1 \u200eimage omitted \u200e<This message was edited>\n"
+        "[12/11/26, 09.17.40] Bu Rina: lodeh \u200e1 ya \u200eimage omitted\n"
+    )
+    assert [p.isi for p in pecah_pesan(teks)] == ["ayam bakar 2", "es teh 1", "lodeh 1 ya"]

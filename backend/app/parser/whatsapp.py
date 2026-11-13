@@ -127,6 +127,7 @@ def _baca_kepala(baris: str) -> tuple[datetime, str] | None:
 
 
 _SEMUA_TAK_TERLIHAT = re.compile("[" + _TAK_TERLIHAT + "]")
+_MEDIA_KURUNG = re.compile(r"<[^<>\n]*(tidak disertakan|omitted)[^<>\n]*>", re.I)
 
 
 def _bersihkan_isi(isi: str) -> str:
@@ -136,10 +137,17 @@ def _bersihkan_isi(isi: str) -> str:
         b = _DIEDIT.sub("", baris.strip(_TAK_TERLIHAT + " \t\r"))
         # iPhone menulis media berketerangan dalam satu baris: "keterangan <U+200E>image omitted".
         # Penanda di belakang U+200E dibuang, keterangannya dipertahankan.
-        depan, pemisah, ekor = b.partition(_PENANDA_SISTEM_IOS)
-        if pemisah and _penanda_media(ekor):
-            b = depan
-        b = _SEMUA_TAK_TERLIHAT.sub("", b).strip()
+        # Bisa ada lebih dari satu U+200E di satu baris, jadi potong dari penanda paling belakang.
+        while True:
+            depan, pemisah, ekor = b.rpartition(_PENANDA_SISTEM_IOS)
+            if not pemisah:
+                break
+            if ekor.strip() and not _penanda_media(ekor):
+                break
+            b = depan.rstrip()
+        # Android menulisnya dalam kurung sudut di baris yang sama: "keterangan <Media omitted>".
+        b = _MEDIA_KURUNG.sub(" ", b)
+        b = re.sub(r" {2,}", " ", _SEMUA_TAK_TERLIHAT.sub("", b)).strip()
         if _penanda_media(b):
             continue
         baris_bersih.append(b)
