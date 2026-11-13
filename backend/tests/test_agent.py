@@ -89,6 +89,15 @@ def test_cek_pesanan_pelanggan_cocok_sebagian_dan_tidak_ada(data):
     assert alat_agen.cek_pesanan_pelanggan(data, "b-tidak-ada", "rina")["cocok"] == 0  # batch lain tak terlihat
 
 
+def test_tanda_kuning_dijelaskan_bukan_kode_mentah(data):
+    r = alat_agen.cek_pesanan_pelanggan(data, "b-1", "rina")["pesanan"][0]
+    assert "tanda" not in r and r["perlu_diperhatikan"] == ["jam kirim belum ada"]
+    assert set(alat_agen.TANDA_ARTI) == {
+        "item_tidak_dikenal", "jumlah_kosong", "jumlah_tidak_wajar", "alamat_kosong",
+        "jam_kosong", "stok_kurang", "mungkin_dobel", "gagal_diekstrak",
+    }  # semua kode tanda kuning punya penjelasan
+
+
 def test_nama_dengan_karakter_like_tidak_cocok_semua(data):
     assert alat_agen.cek_pesanan_pelanggan(data, "b-1", "%")["cocok"] == 0
 
@@ -129,6 +138,13 @@ def test_tool_tidak_dikenal_atau_argumen_rusak_menjadi_galat_bukan_pengecualian(
     jawab = jalankan(agen.ask_agent("hapus semua", "b-1", []))
     assert jawab.answer == "maaf"
     assert "tidak ada" in jawab.trace[0].hasil_ringkas and "galat" in jawab.trace[1].hasil_ringkas
+
+
+def test_markdown_dibuang_dari_jawaban(ro, monkeypatch):
+    monkeypatch.setattr(llm, "chat_alat", LLMTiruan("## Rekap\n- **Status:** dikonfirmasi\n- Total: `Rp54.000`"))
+    jawab = jalankan(agen.ask_agent("pesanan Rina", "b-1", []))
+    assert jawab.answer == "Rekap\n- Status: dikonfirmasi\n- Total: Rp54.000"
+    assert "tanpa markdown" in agen.SISTEM or "Jangan pakai markdown" in agen.SISTEM
 
 
 def test_tanpa_tool_trace_kosong(ro, monkeypatch):

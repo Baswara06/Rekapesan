@@ -22,6 +22,17 @@ from app.db.models import (
 )
 from app.rules import normalisasi_jam
 
+# Arti tanda kuning untuk dibaca penjual. Kode mentah (mis. jam_kosong) tidak ikut dikirim ke model.
+TANDA_ARTI = {
+    "item_tidak_dikenal": "ada menu yang tidak dikenal di katalog",
+    "jumlah_kosong": "jumlah porsi belum jelas",
+    "jumlah_tidak_wajar": "jumlah porsi tidak wajar (terlalu banyak)",
+    "alamat_kosong": "alamat belum ada",
+    "jam_kosong": "jam kirim belum ada",
+    "stok_kurang": "stok menu tidak cukup",
+    "mungkin_dobel": "mungkin pesanan dobel",
+    "gagal_diekstrak": "chat gagal dibaca, perlu dicek manual",
+}
 MAKS_PELANGGAN = 5
 MAKS_TEKS = 200
 
@@ -105,7 +116,7 @@ def cek_pesanan_pelanggan(db: Session, batch_id: str, nama: str) -> dict[str, An
                     "alamat": _potong(o.alamat),
                     "catatan": _potong(o.catatan),
                     "total": o.total,
-                    "tanda": list(o.tanda or []),
+                    "perlu_diperhatikan": [TANDA_ARTI.get(k, k) for k in (o.tanda or [])],
                     "item": [
                         {"menu": it.product.nama if it.product else _potong(it.teks_asli), "porsi": it.qty}
                         for it in o.items
