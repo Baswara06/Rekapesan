@@ -25,6 +25,7 @@ from app.db.models import STATUS_BATAL, Batch, Customer, MessageRow, Order, Orde
 from app.parser import anonymize, parse_export, saring_baru
 from app.rules import apply_intent, qty_per_produk
 from app.schemas import CatalogEntry, Extraction, Message, OrderChange
+from app.services.stok_service import segarkan_tanda_stok
 
 log = logging.getLogger(__name__)
 
@@ -295,6 +296,8 @@ async def _impor(
             pakai_per_order[order.id] = qty_per_produk((change.sesudah or {}).get("items", []))
         disentuh[order.id] = order
 
+    # Tanda stok dihitung ulang untuk seluruh batch menurut urutan masuk (lihat stok_service).
+    segarkan_tanda_stok(db, batch_id)
     hasil.perlu_cek = sum(1 for o in disentuh.values() if o.tanda and o.status != STATUS_BATAL)
     db.commit()
     return hasil
