@@ -31,7 +31,12 @@ Untuk impor, `kuota_llm_habis` dan `llm_gagal` hanya muncul bila ekstraksi gagal
 | POST | `/auth/login` | `{username, password}` → `{token}` (berlaku 12 jam) |
 | GET | `/health` | `{status: "ok"}` |
 
-Akun demo diatur lewat `DEMO_USERNAME` dan `DEMO_PASSWORD` di `.env`. Bila `DEMO_PASSWORD` kosong, semua login ditolak.
+Akun demo diatur lewat `DEMO_USERNAME` dan `DEMO_PASSWORD` di `.env`. Token ditandatangani dengan `APP_SECRET_KEY`.
+
+Login **dimatikan** (401 `tidak_terautentikasi` dengan pesan yang menyebut isian `.env` yang kurang) bila:
+
+- `DEMO_PASSWORD` kosong, atau
+- `APP_SECRET_KEY` kosong, masih nilai bawaan `.env.example`, atau kurang dari 16 karakter. Token yang ditandatangani dengan kunci seperti itu juga ditolak, supaya tidak ada yang bisa membuat token sendiri.
 
 ## Katalog
 
@@ -116,6 +121,18 @@ Aturan `PATCH /orders/{id}`:
 - `jam_kirim` diterima dalam bentuk bebas ("12", "jam 11.30") dan disimpan sebagai `HH:MM`. Kosong atau `null` menghapus jam. Jam tidak sah → 422.
 - Isian yang tidak dikirim tidak berubah. `alamat: null` atau `""` menghapus alamat.
 - Stok dihitung dari pesanan lain di batch yang sama yang belum batal.
+- `product_id` menu yang tidak ada atau sudah nonaktif diperlakukan seperti tidak dikenal (`null`), sama seperti jalur impor.
+- `status` hanya boleh berpindah menurut tabel di bawah. Di luar itu 409 `validasi_gagal`. Mengirim status yang sama dengan status sekarang tidak mengubah apa pun.
+
+| Dari | Boleh menjadi |
+| --- | --- |
+| `perlu_cek` | `dikonfirmasi`, `batal` |
+| `dikonfirmasi` | `perlu_cek`, `batal`, `dikirim` |
+| `dibayar` | `dikonfirmasi` (pelunasan dibatalkan), `dikirim` |
+| `dikirim` | tidak ada |
+| `batal` | `perlu_cek` (dibuka lagi untuk diperiksa) |
+
+`dibayar` **tidak bisa** dicapai lewat PATCH. Satu-satunya jalan adalah `POST /orders/{id}/payment-confirm`.
 
 ## Rekap
 
