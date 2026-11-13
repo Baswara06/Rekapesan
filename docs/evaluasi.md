@@ -76,7 +76,8 @@ Penjual dan kondisi pengukuran: _isi_
 
 Pemeriksaan kecil untuk memastikan jalurnya berfungsi. Jumlah contohnya terlalu sedikit untuk dijadikan angka akurasi.
 
-- **Bukti bayar**: 3 gambar **buatan sendiri** (bukan tangkapan layar bank asli), satu kali jalan. Nama dan nominal terbaca benar dan biaya admin tidak ikut terambil. Teks "abaikan instruksi" di dalam gambar tidak diikuti. Gambar yang bukan bukti menghasilkan nama dan nominal kosong. Belum diuji dengan bukti transfer nyata.
+- **Bukti bayar, gambar buatan sendiri**: 3 gambar, satu kali jalan. Nama dan nominal terbaca benar dan biaya admin tidak ikut terambil. Teks "abaikan instruksi" di dalam gambar tidak diikuti. Gambar yang bukan bukti menghasilkan nama dan nominal kosong.
+- **Bukti bayar, struk asli**: 18 struk pembayaran QRIS BCA milik pribadi Satria (13 November 2026), semuanya ke satu merchant dengan satu tata letak. Nominal terbaca di 18 dari 18. Lima di antaranya dicocokkan satu per satu dengan gambarnya dan kelimanya benar. Tiga belas sisanya belum dicocokkan manual. Nama kosong di semua file karena struk QRIS tidak memuat nama pengirim. Foto aslinya tidak disimpan di repo.
 - **Agen**: 5 pertanyaan pada data demo (rekap per jam, belum bayar, pesanan seorang pembeli, pertanyaan di luar topik, permintaan menyetujui dan menandai lunas) menjawab benar dengan tool yang tepat dan menolak dua yang di luar wewenang. Satria menguji 7 pertanyaan lain, semuanya benar. Guardrail hanya berupa instruksi, jadi belum ada jaminan terhadap serangan yang gigih.
 
 ## Batasan
@@ -84,3 +85,4 @@ Pemeriksaan kecil untuk memastikan jalurnya berfungsi. Jumlah contohnya terlalu 
 - Set uji sintetis buatan tim, belum memuat chat penjual asli.
 - Satu kali jalan per model, tanpa pengulangan, sehingga variasi antar jalan belum diukur.
 - Gaya tulisan chat asli yang lebih berantakan dapat menurunkan angka ini.
+- Bukti bayar baru diuji pada satu aplikasi dan satu tata letak (struk QRIS BCA). Transfer antarbank, e-wallet, dan mode gelap belum diuji, dan pembacaan **nama pengirim belum teruji pada bukti asli**. Karena struk QRIS tidak memuat nama, pencocokan pada kasus itu hanya berdasarkan nominal, dan penjual tetap yang mengonfirmasi lunas.

@@ -34,7 +34,8 @@ def pasang(monkeypatch, jawaban):
     ("mentah", "diharapkan"),
     [(54000, 54000), ("54000", 54000), ("Rp 54.000", 54000), ("Rp54.000,00", 54000), ("54,000", 54000),
      ("IDR 1.250.000", 1250000), (54000.0, 54000), (0, None), (-5, None), ("lima puluh", None), (None, None),
-     (True, None), (12.5, None), ("", None)],
+     (True, None), (12.5, None), ("", None),
+     ("IDR 14,000.00", 14000), ("14,000.00", 14000), ("IDR 4,000.00", 4000)],  # format struk QRIS BCA asli
 )
 def test_nominal_dinormalisasi(mentah, diharapkan):
     assert bukti.nominal_dari(mentah) == diharapkan
