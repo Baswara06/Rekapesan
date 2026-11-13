@@ -76,7 +76,7 @@ def test_bukti_bayar_menolak_bukan_gambar_dan_pembaca_belum_siap(client, pesanan
     assert res.status_code == 422 and res.json()["error"]["kode"] == "validasi_gagal"
     # Pembaca bukti bayar (Pangeran) masih stub: galat seragam, bukan 500.
     res = client.post(f"/api/orders/{rina}/payment-proof", files={"file": ("b.png", PNG, "image/png")})
-    assert res.status_code == 503 and res.json()["error"]["kode"] == "llm_gagal"
+    assert res.status_code == 502 and res.json()["error"]["kode"] == "llm_gagal"
 
 
 def test_agen_tanya_jawab_menyertakan_trace(client, pesanan_contoh, monkeypatch):
@@ -100,5 +100,5 @@ def test_agen_galat_seragam(client, pesanan_contoh):
     res = client.post("/api/agent/ask", json={"batch_id": "tidak-ada", "pertanyaan": "halo"})
     assert res.status_code == 404
     res = client.post("/api/agent/ask", json={"batch_id": "b-1", "pertanyaan": "halo"})  # agen masih stub
-    assert res.status_code == 503 and res.json()["error"]["kode"] == "llm_gagal"
+    assert res.status_code == 502 and res.json()["error"]["kode"] == "llm_gagal"
     assert client.post("/api/agent/ask", json={"batch_id": "b-1", "pertanyaan": ""}).status_code == 422

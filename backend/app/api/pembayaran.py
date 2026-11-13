@@ -37,9 +37,9 @@ async def bukti_bayar(order_id: str, file: UploadFile = File(...), db: Session =
     try:
         saran = await modul_extractor.read_payment_proof(data)
     except NotImplementedError:
-        raise ApiError(503, "llm_gagal", "Pembaca bukti bayar belum tersedia.") from None
+        raise ApiError(502, "llm_gagal", "Pembaca bukti bayar belum tersedia.") from None
     except Exception:  # noqa: BLE001 - kegagalan model tidak boleh membuat server error
-        raise ApiError(503, "llm_gagal", "Bukti bayar tidak bisa dibaca. Tandai lunas secara manual.") from None
+        raise ApiError(502, "llm_gagal", "Bukti bayar tidak bisa dibaca. Tandai lunas secara manual.") from None
 
     cocok = saran.nominal is not None and saran.nominal == order.total
     pembayaran = Payment(order_id=order.id, nama=saran.nama, nominal=saran.nominal, cocok=cocok)

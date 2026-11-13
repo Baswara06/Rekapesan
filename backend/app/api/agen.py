@@ -26,7 +26,7 @@ async def tanya(body: AskIn, db: Session = Depends(get_db)) -> dict[str, Any]:
     try:
         jawab = await modul_agent.ask_agent(body.pertanyaan, body.batch_id, body.riwayat)
     except NotImplementedError:
-        raise ApiError(503, "llm_gagal", "Agen tanya-jawab belum tersedia.") from None
+        raise ApiError(502, "llm_gagal", "Agen tanya-jawab belum tersedia.") from None
     except Exception:  # noqa: BLE001
-        raise ApiError(503, "llm_gagal", "Agen tidak bisa menjawab sekarang. Coba lagi nanti.") from None
+        raise ApiError(502, "llm_gagal", "Agen tidak bisa menjawab sekarang. Coba lagi nanti.") from None
     return {"jawaban": jawab.answer, "trace": [t.model_dump() for t in jawab.trace]}
