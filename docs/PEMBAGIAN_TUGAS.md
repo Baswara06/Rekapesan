@@ -202,7 +202,7 @@ Inisial tim:
 | Raihan | RWB |
 | Satria | SFA |
 | Pangeran | _isi_ |
-| Amad | _isi_ |
+| Amad | ARA |
 
 ### Alur cabang dan merge
 
