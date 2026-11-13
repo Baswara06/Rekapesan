@@ -9,7 +9,7 @@ from app.extractor import extract_orders
 from app.extractor.llm import daftar_penyedia
 from tests.eval.skor import evaluasi, laporan_markdown, ringkas
 
-pytestmark = pytest.mark.skipif(not daftar_penyedia(get_settings()), reason="LLM belum dikonfigurasi di .env")
+pytestmark = pytest.mark.skipif(not daftar_penyedia(get_settings()), reason="LLM tidak dikonfigurasi. Jalankan dengan RUN_LIVE_EVAL=1 dan isi LLM_* di .env")
 
 # Batas minimum sengaja longgar: ini penjaga regresi, bukan klaim akurasi. Angka resmi ada di docs/evaluasi.md.
 MAKS_LOLOS_PERSEN = 15
