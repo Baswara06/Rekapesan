@@ -61,5 +61,6 @@ flowchart TD
 - Agen: tool hanya baca, DB read-only, guardrail di system prompt.
 - Kredensial hanya di `.env`.
 - Akun: akun demo dari `.env`, akun lain lewat `POST /auth/register` (kata sandi di-hash PBKDF2-SHA256, tabel `users`).
+- Nama toko: kolom `users.nama_toko` (`String(60)`, boleh kosong; modul DB) untuk akun hasil register, `DEMO_NAMA_TOKO` di `.env` untuk akun demo. Dibaca lewat `nama_toko_akun(db, username)` di `kepemilikan.py` dan dipakai templat balasan konfirmasi.
 - Data terpisah per akun: `products.pemilik` dan `batches.pemilik` berisi username di token. Pesanan, pembeli, pesan mentah, bukti bayar, rekap, dan agen ikut pemilik batch. Pemeriksaan ada di `backend/app/api/kepemilikan.py`. Data akun lain dijawab 404. Katalog yang dikirim ke LLM saat impor hanya milik pemilik batch.
 

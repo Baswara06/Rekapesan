@@ -29,10 +29,14 @@ Untuk impor, `kuota_llm_habis` dan `llm_gagal` hanya muncul bila ekstraksi gagal
 | Method | Path | Isi |
 | --- | --- | --- |
 | POST | `/auth/login` | `{username, password}` → `{token}` (berlaku 12 jam) |
-| POST | `/auth/register` | `{username, password}` → 201 `{token}`. Username 3-32 karakter `a-z 0-9 _ .` (disimpan huruf kecil), kata sandi minimal 8 karakter. 422 `validasi_gagal` bila tidak sah, 409 `username_dipakai` bila sudah ada (termasuk nama akun demo) |
+| POST | `/auth/register` | `{username, password, nama_toko?}` → 201 `{token}`. Username 3-32 karakter `a-z 0-9 _ .` (disimpan huruf kecil), kata sandi minimal 8 karakter, nama toko 2-60 karakter (spasi berlebih dirapikan). 422 `validasi_gagal` bila tidak sah, 409 `username_dipakai` bila sudah ada (termasuk nama akun demo) |
+| GET | `/auth/me` | `{username, nama_toko}`. `nama_toko` bisa `null` (akun lama atau belum diisi). Wajib login |
+| PATCH | `/auth/me` | `{nama_toko}` → `{username, nama_toko}`. Kosong → 422. Akun demo → 409 (diatur lewat `.env`) |
 | GET | `/health` | `{status: "ok"}` |
 
-Akun demo diatur lewat `DEMO_USERNAME` dan `DEMO_PASSWORD` di `.env`. Akun hasil register disimpan di tabel `users`, kata sandi di-hash PBKDF2-SHA256. Token ditandatangani dengan `APP_SECRET_KEY`.
+`nama_toko` opsional di API supaya klien lama tetap bisa daftar, tetapi **layar Daftar mewajibkannya**. Bila `GET /auth/me` mengembalikan `nama_toko: null`, FE sebaiknya meminta penjual mengisinya (lalu `PATCH /auth/me`). Nama toko dipakai di balasan konfirmasi.
+
+Akun demo diatur lewat `DEMO_USERNAME`, `DEMO_PASSWORD`, dan `DEMO_NAMA_TOKO` di `.env`. Akun hasil register disimpan di tabel `users`, kata sandi di-hash PBKDF2-SHA256. Token ditandatangani dengan `APP_SECRET_KEY`.
 
 **Data terpisah per akun.** Katalog dan batch punya `pemilik` (username di token). Pesanan, pembeli, pesan mentah, rekap, bukti bayar, dan agen ikut pemilik batch-nya. Data akun lain dijawab 404 `tidak_ditemukan`. Database lama tanpa kolom `pemilik` diberi kolom itu saat server mulai, dan datanya diserahkan ke akun demo.
 
@@ -98,7 +102,7 @@ Share target PWA: service worker menerima berkas dari menu Bagikan dan meneruska
 | POST | `/orders/{id}/approve` | setujui (`perlu_cek` → `dikonfirmasi`). Pesanan batal → 409 |
 | POST | `/orders/{id}/reject` | tolak (→ `batal`). Pesanan `dibayar` atau `dikirim` → 409 |
 | POST | `/batches/{id}/orders/approve-clean` | setujui semua `perlu_cek` yang tanpa tanda. Respons `{disetujui, masih_bertanda}` |
-| GET | `/orders/{id}/reply` | `{teks}` balasan konfirmasi dari templat. Hanya untuk pesanan yang sudah disetujui, selain itu 409 |
+| GET | `/orders/{id}/reply` | `{teks}` balasan konfirmasi dari templat ("Halo Bu Rina, pesanan kamu di *nama toko* sudah kami catat ya: …"; tanpa "di …" bila nama toko kosong). Hanya untuk pesanan yang sudah disetujui, selain itu 409 |
 
 ```json
 Order = {

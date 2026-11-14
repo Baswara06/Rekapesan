@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     app_secret_key: str = KUNCI_BAWAAN
     demo_username: str = "demo"
     demo_password: str = ""
+    demo_nama_toko: str = ""
     jumlah_tidak_wajar_default: int = 20
     cors_origins: str = "http://localhost:5173"
 

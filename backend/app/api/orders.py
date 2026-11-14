@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.balasan import susun_balasan
-from app.api.kepemilikan import batch_milik, pastikan_order_milik, pemilik_aktif, produk_milik
+from app.api.kepemilikan import batch_milik, nama_toko_akun, pastikan_order_milik, pemilik_aktif, produk_milik
 from app.api.serializers import order_out
 from app.core.config import get_settings
 from app.core.errors import validasi
@@ -245,5 +245,8 @@ def balasan(order_id: str, db: Session = Depends(get_db), pemilik: str = Depends
         }
         for it in order.items
     ]
-    teks = susun_balasan(order.customer.nama_tampil, items, order.total, order.jam_kirim, order.alamat, order.catatan)
+    teks = susun_balasan(
+        order.customer.nama_tampil, items, order.total, order.jam_kirim, order.alamat, order.catatan,
+        nama_toko=nama_toko_akun(db, pemilik),
+    )
     return {"teks": teks}

@@ -21,8 +21,12 @@ def susun_balasan(
     jam_kirim: str | None,
     alamat: str | None,
     catatan: str | None,
+    nama_toko: str | None = None,
 ) -> str:
-    """`items`: tiap item berisi `nama` (nama menu atau teks asli), `qty`, `harga_satuan`, `catatan_item`, `dikenal`."""
+    """`items`: tiap item berisi `nama` (nama menu atau teks asli), `qty`, `harga_satuan`, `catatan_item`, `dikenal`.
+
+    `nama_toko` kosong berarti salam tanpa nama toko.
+    """
     baris = []
     for it in items:
         qty, harga = it.get("qty"), it.get("harga_satuan")
@@ -36,7 +40,8 @@ def susun_balasan(
             teks += f" ({it['catatan_item']})"
         baris.append(teks)
 
-    bagian = [f"Halo {nama}, pesanan kamu sudah kami catat ya:", *baris, f"Total: {rupiah(total)}"]
+    di_toko = f" di {nama_toko}" if nama_toko else ""
+    bagian = [f"Halo {nama}, pesanan kamu{di_toko} sudah kami catat ya:", *baris, f"Total: {rupiah(total)}"]
     kirim = []
     if jam_kirim:
         kirim.append(f"pukul {_jam(jam_kirim)}")

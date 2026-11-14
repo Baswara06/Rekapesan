@@ -11,6 +11,8 @@ if not os.environ.get("RUN_LIVE_EVAL"):
         "LLM_FALLBACK_API_KEY", "LLM_FALLBACK_BASE_URL", "LLM_FALLBACK_MODEL", "VISION_MODEL",
     ):
         os.environ[_kunci] = ""
+# Nama toko demo dari .env akan mengubah teks balasan konfirmasi yang diuji.
+os.environ["DEMO_NAMA_TOKO"] = ""
 
 import pytest
 from sqlalchemy.orm import Session
