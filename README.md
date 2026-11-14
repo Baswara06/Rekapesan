@@ -11,7 +11,7 @@ Dibuat untuk **LOGICODIX 2026** (HIMTI UNESA).
 | --- | --- |
 | **Kategori** | Web (mobile-first, PWA) |
 | **Subtema** | Local MSME and Creative Economy |
-| **Demo (deploy)** | _isi setelah deploy_ |
+| **Demo (deploy)** | https://rekapesan.my.id (API: https://api.rekapesan.my.id) |
 | **Video demo** | _isi tautan YouTube_ |
 | **Akun demo** | username `demo` / password: _isi_ (berisi katalog dan PO contoh). Bisa juga **Daftar** akun baru di layar Masuk |
 
@@ -75,19 +75,21 @@ Harga tidak pernah dikirim ke LLM dan tidak pernah berasal dari LLM, sehingga ma
 
 ## 4. Fitur
 
-- [ ] Katalog menu (nama, alias, harga, stok harian)
-- [ ] Impor ekspor chat (`.txt` / `.zip`), tempel teks, dan bagikan langsung dari WhatsApp (PWA share target, Android)
-- [ ] Ekstraksi pesanan dengan LLM, keluaran JSON tervalidasi skema
-- [ ] Layar review: chat asli berdampingan dengan hasil ekstraksi, tanda kuning
-- [ ] Rekap produksi per menu, urutan kirim per jam, omzet, belum bayar
-- [ ] Impor ulang tanpa pesanan dobel (sidik pesan)
-- [ ] Penanganan pesan "ubah" dan "batal"
-- [ ] Balasan konfirmasi per pembeli (templat, siap salin)
-- [ ] Agen tanya-jawab dengan tool calling (read-only) dan tampilan trace
-- [ ] Daftar belanja bahan baku dari resep per menu
-- [ ] Tanda "sudah bayar" dari tangkapan layar transfer (dikonfirmasi penjual)
-- [ ] Daftar dan masuk akun penjual (data tiap akun terpisah), hapus batch beserta pesan mentahnya
-- [ ] Evaluasi otomatis di CI
+- [x] Katalog menu (nama, alias, harga, stok harian, resep)
+- [x] Impor ekspor chat (`.txt` / `.zip`) dan tempel teks
+- [ ] Bagikan langsung dari WhatsApp (PWA share target, Android): sudah dibuat, belum diuji di HP Android
+- [x] Ekstraksi pesanan dengan LLM, keluaran JSON tervalidasi skema
+- [x] Layar review: chat asli berdampingan dengan hasil ekstraksi, tanda kuning
+- [x] Rekap produksi per menu, urutan kirim per jam, omzet, belum bayar
+- [x] Impor ulang tanpa pesanan dobel (sidik pesan)
+- [x] Penanganan pesan "ubah" dan "batal"
+- [x] Balasan konfirmasi per pembeli (templat, siap salin)
+- [x] Agen tanya-jawab dengan tool calling (read-only) dan tampilan trace
+- [x] Daftar belanja bahan baku dari resep per menu
+- [x] Tanda "sudah bayar" dari tangkapan layar transfer (dikonfirmasi penjual)
+- [x] Daftar dan masuk akun penjual (data tiap akun terpisah), hapus batch beserta pesan mentahnya
+- [x] Uji otomatis backend dan frontend di CI (GitHub Actions)
+- [ ] Evaluasi ekstraktor ke LLM di CI: job sudah ada, tetapi masih dilewati karena kunci LLM belum diatur di GitHub Secrets. Angka evaluasi di bagian 9 dari menjalankan penilai yang sama secara manual
 
 _Centang yang benar-benar selesai. Jangan centang yang belum._
 
@@ -118,8 +120,8 @@ Detail: [`docs/arsitektur.md`](docs/arsitektur.md) · Kontrak API: [`docs/api-co
 | Lapisan | Teknologi |
 | --- | --- |
 | Backend | Python 3.11+, FastAPI, SQLAlchemy, Pydantic |
-| Database | SQLite (lokal), PostgreSQL (deploy) |
-| LLM | Penyedia kompatibel OpenAI API (OpenRouter / NVIDIA NIM), model diatur lewat `.env` |
+| Database | SQLite (lokal dan server demo) |
+| LLM | Penyedia kompatibel OpenAI API (server demo: sumopod), model utama dan cadangan diatur lewat `.env` |
 | Frontend | React + Vite + TypeScript, PWA |
 | Uji | pytest (backend), Vitest (frontend) |
 | CI | GitHub Actions |
@@ -169,8 +171,10 @@ Bila `DEMO_PASSWORD` kosong, atau `APP_SECRET_KEY` kosong, masih nilai bawaan, a
 
 | Penggunaan | Model / alat | Bagian |
 | --- | --- | --- |
-| Di dalam produk | _isi nama model dan penyedia_ | Ekstraksi pesanan, agen tanya-jawab, pembacaan bukti bayar |
-| Saat pengembangan | _isi, misalnya Claude Code_ | _isi bagian apa saja yang dibantu_ |
+| Di dalam produk | `claude-haiku-5-5` lewat penyedia kompatibel OpenAI API (sumopod), cadangan otomatis `gpt-5.4-mini`. Model diatur di `.env` (`LLM_MODEL`, `LLM_FALLBACK_MODEL`, `VISION_MODEL`; bila `VISION_MODEL` kosong, bukti bayar memakai model utama) | Ekstraksi pesanan, agen tanya-jawab, pembacaan bukti bayar |
+| Saat pengembangan | Claude Code (Anthropic) | Membantu menulis dan meninjau kode, uji, dan dokumentasi. Setiap perubahan masuk lewat Pull Request yang ditinjau anggota tim dan harus lulus uji CI |
+
+Alasan pemilihan model ada di [`docs/evaluasi.md`](docs/evaluasi.md) (perbandingan lima model dengan penilai yang sama). Efisiensi: satu panggilan per pengirim, paralel, tanpa pemanggilan berulang kecuali keluaran tidak sah. Pesan yang sudah pernah diproses tidak dikirim lagi, dan impor ditolak sebelum memanggil LLM bila katalog masih kosong.
 
 Data yang dikirim ke penyedia LLM: teks chat yang nomor teleponnya sudah disamarkan, dan daftar katalog (tanpa harga). Gambar bukti bayar dikirim hanya saat penjual menekan tombol baca.
 
@@ -192,15 +196,35 @@ Data yang dikirim ke penyedia LLM: teks chat yang nomor teleponnya sudah disamar
 
 ## 9. Hasil evaluasi
 
-_Isi dari [`docs/evaluasi.md`](docs/evaluasi.md) apa adanya, termasuk angka "salah dan lolos tanpa tanda"._
+Ringkasan dari [`docs/evaluasi.md`](docs/evaluasi.md). Set uji: 40 kasus **sintetis** buatan tim (belum chat penjual asli), satu kasus = satu panggilan ekstraktor untuk satu pengirim. Model `claude-haiku-5-5`, satu kali jalan, 13 November 2026.
+
+| Kategori | Jumlah | Persen |
+| --- | --- | --- |
+| Benar seluruhnya | 39 | 97,5% |
+| Salah, tertangkap tanda kuning | 0 | 0,0% |
+| Salah, **lolos tanpa tanda** | 1 | 2,5% |
+
+Kasus sulit: ubah pesanan 5/5, batal 3/3, item tidak ada di katalog 3/3, jumlah tidak wajar 2/2, percobaan manipulasi harga (prompt injection) 4/4. Satu kesalahan (g16) adalah kasus ambigu: model memasukkan "lobi" ke catatan, bukan alamat. Di aplikasi pesanan itu tetap diberi tanda `alamat_kosong`, tetapi penilai tidak menghitungnya sebagai tertangkap. Gold tidak diubah supaya angka tetap apa adanya.
+
+Set uji kecil dan sintetis, jadi angka ini belum mewakili chat penjual sungguhan.
 
 ## 10. Batasan yang diketahui
 
 - Akun: belum ada verifikasi email dan fitur lupa kata sandi (aplikasi belum mengirim email). Satu akun untuk satu penjual, belum ada akun staf atau peran.
 - Profil toko (nama toko di balasan konfirmasi) belum ada.
-
-_Isi jujur. Contoh: share target tidak didukung PWA di iPhone, format ekspor diuji pada Android dan iPhone dengan bahasa tertentu saja._
+- Format ekspor diuji pada contoh Android, iPhone (bahasa Indonesia dan Inggris), dan salinan WhatsApp Web. Format bahasa atau wilayah lain belum diuji.
+- Bagikan langsung dari WhatsApp (share target) hanya untuk PWA di Android. iPhone tidak mendukung fitur ini, jadi pengguna iPhone memakai unggah berkas atau tempel teks.
+- Evaluasi ekstraktor memakai 40 kasus sintetis. Akurasi pada chat penjual sungguhan belum diukur.
+- Ambang "jumlah tidak wajar" masih diatur lewat `.env` (`JUMLAH_TIDAK_WAJAR_DEFAULT`), belum bisa diubah dari aplikasi.
+- Server demo memakai SQLite di hosting bersama (cPanel), cukup untuk demo tetapi belum diuji untuk banyak penjual sekaligus.
 
 ## 11. Atribusi
 
-_Isi template, ikon, font, dataset, atau kode pihak ketiga yang dipakai._
+| Bagian | Sumber | Lisensi |
+| --- | --- | --- |
+| Font | Fraunces dan Plus Jakarta Sans lewat Fontsource | SIL Open Font License 1.1 |
+| Ikon dan logo | Dibuat sendiri oleh tim (SVG di `frontend/src/components/Icon.tsx` dan `Logo.tsx`) | - |
+| Frontend | React, Vite, Vitest, Testing Library, jsdom | MIT |
+| Backend | FastAPI, SQLAlchemy, Pydantic, pydantic-settings, pytest (MIT); Uvicorn, HTTPX (BSD-3-Clause); OpenAI Python SDK, python-multipart, a2wsgi untuk deploy cPanel (Apache-2.0) | sesuai kolom |
+| Data contoh dan gold set | Dibuat tim, nama, alamat, dan nomor samaran (`sample/`) | - |
+| Model AI | Diakses lewat API penyedia (lihat bagian 7), tidak didistribusikan di repo | sesuai ketentuan penyedia |
