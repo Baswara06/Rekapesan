@@ -4089,3 +4089,62 @@ main[tabindex="-1"]:focus {
   color: var(--danger);
   font-weight: 600;
 }
+
+/* ---------- Riwayat Tanya AI ---------- */
+.tanya-alat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.riwayat-tanya {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.riwayat-tanya > p {
+  display: flex;
+  gap: 0.35rem;
+  align-items: flex-start;
+  margin: 0;
+}
+.riwayat-daftar {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.riwayat-daftar li {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--rule);
+}
+.riwayat-daftar li.aktif {
+  border-color: var(--tool);
+  background: var(--tool-soft);
+}
+.riwayat-buka {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.5rem 0.7rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.riwayat-buka strong {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

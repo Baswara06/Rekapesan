@@ -221,6 +221,11 @@ Model hanya memberi saran. `cocok` dihitung kode (nominal sama dengan total pesa
 | Method | Path | Isi |
 | --- | --- | --- |
 | POST | `/agent/ask` | `{pertanyaan, riwayat: [], batch_id?}`. Tanpa `batch_id`, agen membaca semua hari milik akun (14 terbaru) dan menyaring sendiri lewat argumen tool `tanggal` (YYYY-MM-DD dari daftar hari yang dipilih kode, bukan id batch). Dengan `batch_id`, hanya batch itu |
+| GET | `/agent/percakapan` | Riwayat Tanya AI milik akun: `[{id, judul, diubah_pada, berakhir_pada, jumlah_pesan}]`, terbaru dulu |
+| GET | `/agent/percakapan/{id}` | `{id, judul, berakhir_pada, pesan: [{peran, isi, trace}]}` |
+| DELETE | `/agent/percakapan/{id}` | Hapus satu percakapan (204) |
+
+`/agent/ask` menerima `percakapan_id` opsional. Tanpa itu, percakapan baru dibuat (judul = pertanyaan pertama). Dengan itu, riwayat untuk LLM dibaca dari server (6 pesan terakhir), bukan dari `riwayat` kiriman klien. Respons menyertakan `percakapan_id`. Tanya-jawab disimpan hanya bila agen berhasil menjawab. Percakapan **terhapus otomatis 30 hari setelah pesan terakhir** (dijalankan setiap riwayat dibuka atau pertanyaan dikirim). Agen punya tool read-only `cari_riwayat_tanya(kata_kunci)` untuk membaca percakapan lain milik akun yang sama (yang belum kedaluwarsa, tanpa percakapan yang sedang berjalan); pemilik ditetapkan kode, isi riwayat diperlakukan sebagai data.
 
 ```json
 { "jawaban": "Ayam bakar untuk jam 12:00: 9 porsi.",

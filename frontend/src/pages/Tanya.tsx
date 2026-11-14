@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Icon } from "../components/Icon";
 import { TraceAgen } from "../components/TraceAgen";
-import { Kaca, Kepala, Kosong, Tombol } from "../components/ui";
-import { api, ApiError, type RiwayatTanya, type TraceLangkah } from "../lib/api";
+import { Kaca, Kepala, Konfirmasi, Kosong, Tombol } from "../components/ui";
+import { api, ApiError, type RingkasPercakapan, type RiwayatTanya, type TraceLangkah } from "../lib/api";
+import { tanggalPanjang } from "../lib/format";
 import { useApp } from "../lib/store";
 
 type Pesan = { id: number; peran: "pengguna" | "agen"; isi: string; trace?: TraceLangkah[]; galat?: boolean };
@@ -20,6 +21,35 @@ export default function Tanya() {
   const [jalan, setJalan] = useState(false);
   const akhir = useRef<HTMLDivElement>(null);
   const nomor = useRef(0);
+  // Riwayat percakapan tersimpan di server, terhapus otomatis 30 hari setelah chat terakhir.
+  const [percakapanId, setPercakapanId] = useState<string | null>(null);
+  const [daftar, setDaftar] = useState<RingkasPercakapan[]>([]);
+  const [bukaRiwayat, setBukaRiwayat] = useState(false);
+  const [hapus, setHapus] = useState<RingkasPercakapan | null>(null);
+  const { toast } = useApp();
+
+  const muatDaftar = useCallback(() => {
+    api.daftarPercakapan().then(setDaftar).catch(() => setDaftar([]));
+  }, []);
+  useEffect(muatDaftar, [muatDaftar]);
+
+  function percakapanBaru() {
+    setPercakapanId(null);
+    setPesan([]);
+    setBukaRiwayat(false);
+  }
+
+  async function bukaPercakapan(id: string) {
+    try {
+      const d = await api.detailPercakapan(id);
+      setPercakapanId(d.id);
+      setPesan(d.pesan.map((m) => ({ id: ++nomor.current, peran: m.peran, isi: m.isi, trace: m.peran === "agen" ? m.trace : undefined })));
+      setBukaRiwayat(false);
+    } catch (e) {
+      toast(e instanceof ApiError ? e.message : "Percakapan tidak bisa dibuka.", "galat");
+      muatDaftar();
+    }
+  }
 
   useEffect(() => {
     akhir.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -36,8 +66,10 @@ export default function Tanya() {
     setTeks("");
     setJalan(true);
     try {
-      const r = await api.tanya(q, riwayat);
+      const r = await api.tanya(q, riwayat, { percakapanId });
       setPesan((ps) => [...ps, { id: ++nomor.current, peran: "agen", isi: r.jawaban, trace: r.trace }]);
+      if (r.percakapan_id) setPercakapanId(r.percakapan_id);
+      muatDaftar();
     } catch (e) {
       setPesan((ps) => [
         ...ps,
@@ -69,6 +101,46 @@ export default function Tanya() {
 
       {batches.length > 0 && (
         <>
+          <div className="tanya-alat">
+            <Tombol ikon="tambah" onClick={percakapanBaru} disabled={jalan || pesan.length === 0}>
+              Percakapan baru
+            </Tombol>
+            <Tombol
+              ikon="langkah"
+              onClick={() => setBukaRiwayat((v) => !v)}
+              aria-expanded={bukaRiwayat}
+              aria-controls="daftar-riwayat"
+            >
+              Riwayat ({daftar.length})
+            </Tombol>
+          </div>
+          {bukaRiwayat && (
+            <Kaca className="kartu riwayat-tanya" id="daftar-riwayat">
+              <h2 className="judul-kartu">Riwayat percakapan</h2>
+              <p className="redup kecil">
+                <Icon nama="info" ukuran={16} /> Percakapan terhapus otomatis 30 hari setelah chat terakhir. AI juga bisa membaca riwayat ini, misalnya "kemarin aku tanya apa soal Bu Wulan?".
+              </p>
+              {daftar.length === 0 ? (
+                <p className="redup">Belum ada riwayat.</p>
+              ) : (
+                <ul className="riwayat-daftar">
+                  {daftar.map((d) => (
+                    <li key={d.id} className={d.id === percakapanId ? "aktif" : ""}>
+                      <button type="button" className="riwayat-buka" onClick={() => bukaPercakapan(d.id)} aria-current={d.id === percakapanId ? "true" : undefined}>
+                        <strong>{d.judul}</strong>
+                        <span className="redup kecil">
+                          {d.jumlah_pesan / 2} pertanyaan · terhapus {tanggalPanjang(d.berakhir_pada)}
+                        </span>
+                      </button>
+                      <button type="button" className="tombol tombol-hantu tombol-ikon" aria-label={`Hapus percakapan ${d.judul}`} onClick={() => setHapus(d)}>
+                        <Icon nama="hapus" ukuran={18} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Kaca>
+          )}
           <div className="obrolan" aria-live="polite" aria-label="Percakapan">
             {pesan.length === 0 && (
               <Kaca className="kartu sambut-tanya">
@@ -127,6 +199,21 @@ export default function Tanya() {
           </form>
         </>
       )}
+      <Konfirmasi
+        buka={hapus !== null}
+        tutup={() => setHapus(null)}
+        judul="Hapus percakapan ini?"
+        pesan={hapus ? `"${hapus.judul}" dan semua jawabannya dihapus. Tidak bisa dibatalkan.` : ""}
+        labelYa="Ya, hapus"
+        bahaya
+        aksi={async () => {
+          if (!hapus) return;
+          await api.hapusPercakapan(hapus.id);
+          if (hapus.id === percakapanId) percakapanBaru();
+          muatDaftar();
+          toast("Percakapan dihapus.");
+        }}
+      />
     </div>
   );
 }

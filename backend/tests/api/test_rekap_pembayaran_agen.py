@@ -80,7 +80,7 @@ def test_bukti_bayar_menolak_bukan_gambar_dan_pembaca_belum_siap(client, pesanan
 
 
 def test_agen_tanya_jawab_menyertakan_trace(client, pesanan_contoh, monkeypatch):
-    async def tanya(pertanyaan, batch_id, riwayat):
+    async def tanya(pertanyaan, batch_id, riwayat, **_):
         assert batch_id == "b-1" and riwayat == []
         return AgentAnswer(
             answer="Ayam bakar jam 12:00: 4 porsi.",
@@ -90,7 +90,9 @@ def test_agen_tanya_jawab_menyertakan_trace(client, pesanan_contoh, monkeypatch)
     monkeypatch.setattr(modul_agent, "ask_agent", tanya)
     res = client.post("/api/agent/ask", json={"batch_id": "b-1", "pertanyaan": "Berapa ayam bakar jam 12?", "riwayat": []})
     assert res.status_code == 200
-    assert res.json() == {
+    badan = res.json()
+    assert badan.pop("percakapan_id")  # percakapan baru tersimpan
+    assert badan == {
         "jawaban": "Ayam bakar jam 12:00: 4 porsi.",
         "trace": [{"tool": "rekap_produksi", "argumen": {"jam": "12:00"}, "hasil_ringkas": "4", "hasil": {"total_porsi": 4}}],
     }
@@ -107,7 +109,7 @@ def test_agen_galat_seragam(client, pesanan_contoh):
 def test_agen_tanpa_batch_membaca_semua_hari_milik_akun(client, pesanan_contoh, monkeypatch):
     diterima = {}
 
-    async def tanya(pertanyaan, lingkup, riwayat):
+    async def tanya(pertanyaan, lingkup, riwayat, **_):
         diterima["lingkup"] = lingkup
         return AgentAnswer(answer="ok", trace=[])
 
