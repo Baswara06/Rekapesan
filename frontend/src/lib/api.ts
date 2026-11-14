@@ -345,10 +345,11 @@ export const api = {
   imporHarian: (isi: IsiChat) => minta<HasilImporHarian>("/impor", { method: "POST", body: bodyChat(isi) }),
   ringkasan: () => minta<Ringkasan>("/ringkasan"),
 
-  tanya: (batchId: string, pertanyaan: string, riwayat: RiwayatTanya) =>
+  /** Tanpa `batchId`: agen membaca semua hari milik akun. */
+  tanya: (pertanyaan: string, riwayat: RiwayatTanya, batchId?: string) =>
     minta<AgentAnswer>("/agent/ask", {
       method: "POST",
-      body: json({ batch_id: batchId, pertanyaan, riwayat }),
+      body: json({ ...(batchId ? { batch_id: batchId } : {}), pertanyaan, riwayat }),
     }),
 };
 

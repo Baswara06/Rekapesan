@@ -220,7 +220,7 @@ Model hanya memberi saran. `cocok` dihitung kode (nominal sama dengan total pesa
 
 | Method | Path | Isi |
 | --- | --- | --- |
-| POST | `/agent/ask` | `{batch_id, pertanyaan, riwayat: []}` |
+| POST | `/agent/ask` | `{pertanyaan, riwayat: [], batch_id?}`. Tanpa `batch_id`, agen membaca semua hari milik akun (14 terbaru) dan menyaring sendiri lewat argumen tool `tanggal` (YYYY-MM-DD dari daftar hari yang dipilih kode, bukan id batch). Dengan `batch_id`, hanya batch itu |
 
 ```json
 { "jawaban": "Ayam bakar untuk jam 12:00: 9 porsi.",

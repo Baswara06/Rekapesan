@@ -220,3 +220,60 @@ def test_galat_penyedia_dilempar_agar_api_menjawab_llm_gagal(ro, monkeypatch):
     monkeypatch.setattr(llm, "chat_alat", mati)
     with pytest.raises(ConnectionError):
         jalankan(agen.ask_agent("rekap", "b-1", []))
+
+
+# --- semua hari milik penjual -----------------------------------------------------------------
+
+
+@pytest.fixture
+def dua_hari(data):
+    """Batch kedua (16 Nov) dengan satu pesanan Rina yang disetujui, selain batch b-1 (13 Nov)."""
+    from datetime import date
+
+    from app.db import Batch
+
+    b2 = Batch(id="b-2", pemilik="demo", nama="Senin, 16 Nov", tanggal_mulai=date(2026, 11, 16), tanggal_kirim=date(2026, 11, 16))
+    data.add(b2)
+    c = Customer(batch_id="b-2", nama_tampil="Bu Rina")
+    data.add(c)
+    data.flush()
+    o = Order(batch_id="b-2", customer_id=c.id, status="dikonfirmasi", jam_kirim="11:00", total=36000)
+    o.items = [OrderItem(product_id="p-ayam", teks_asli="ayam 2", qty=2, harga_satuan=18000)]
+    data.add(o)
+    data.commit()
+    return [
+        agen.Hari(batch_id="b-2", tanggal="2026-11-16", nama="Senin, 16 Nov"),
+        agen.Hari(batch_id="b-1", tanggal="2026-11-13", nama="Jumat, 13 Nov"),
+    ]
+
+
+def test_tool_membaca_beberapa_hari_dan_menyebut_tanggal(dua_hari, data):
+    r = alat_agen.rekap_produksi(data, ["b-1", "b-2"])
+    assert r["produksi"][0] == {"menu": "Ayam Bakar", "porsi": 6} and r["pesanan_dihitung"] == 3
+    rina = alat_agen.cek_pesanan_pelanggan(data, ["b-1", "b-2"], "rina")
+    assert sorted(p["tanggal"] for p in rina["pesanan"]) == ["2026-11-13", "2026-11-16"]
+
+
+def test_agen_semua_hari_menyaring_tanggal_dari_model(dua_hari, ro, monkeypatch):
+    tiruan = LLMTiruan(
+        panggil_alat("rekap_produksi", {"tanggal": "2026-11-16"}),
+        panggil_alat("daftar_belum_bayar", {"tanggal": "2026-12-01"}, id="c2"),
+        "Senin 16 Nov: 2 ayam bakar.",
+    )
+    monkeypatch.setattr(llm, "chat_alat", tiruan)
+    from datetime import date
+
+    jawab = jalankan(agen.ask_agent("Berapa ayam hari Senin?", dua_hari, [], hari_ini=date(2026, 11, 15)))
+
+    sistem = tiruan.panggilan[0][0][0]["content"]
+    assert "Hari ini Minggu 2026-11-15" in sistem and "- 2026-11-16 (Senin, 16 Nov)" in sistem
+    pertama, kedua = jawab.trace
+    assert pertama.argumen == {"tanggal": "2026-11-16"}  # tanpa batch_id: id tidak pernah dari model
+    assert pertama.hasil["total_porsi"] == 2  # hanya hari Senin
+    assert "Tidak ada pesanan untuk tanggal 2026-12-01" in kedua.hasil["galat"]
+
+
+def test_agen_tanpa_tanggal_membaca_semua_hari(dua_hari, ro, monkeypatch):
+    monkeypatch.setattr(llm, "chat_alat", LLMTiruan(panggil_alat("daftar_belum_bayar"), "3 pesanan belum bayar."))
+    jawab = jalankan(agen.ask_agent("Siapa yang belum bayar?", dua_hari, []))
+    assert jawab.trace[0].hasil["jumlah"] == 3
