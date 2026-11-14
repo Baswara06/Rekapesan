@@ -197,6 +197,8 @@ async def _impor(
         raise BatchTidakDitemukan(batch_id)
 
     semua = parse_export(file_or_text, batch.tanggal_mulai)
+    # Pesan sesudah hari kirim milik PO berikutnya: bila ikut, pesanan baru menimpa pesanan PO ini.
+    semua = [p for p in semua if p.waktu.date() <= batch.tanggal_kirim]
     sidik_ada = set(db.scalars(select(MessageRow.sidik).where(MessageRow.batch_id == batch_id)))
     baru = saring_baru(semua, sidik_ada)
     hasil = ImportResult(pesan_baru=len(baru), pesan_dilewati=len(semua) - len(baru))
