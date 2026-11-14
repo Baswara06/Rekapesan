@@ -11,9 +11,9 @@ Dibuat untuk **LOGICODIX 2026** (HIMTI UNESA).
 | --- | --- |
 | **Kategori** | Web (mobile-first, PWA) |
 | **Subtema** | Local MSME and Creative Economy |
-| **Demo (deploy)** | _isi setelah deploy_ |
+| **Demo (deploy)** | https://rekapesan.my.id |
 | **Video demo** | _isi tautan YouTube_ |
-| **Akun demo** | username `demo` / password: _isi_ |
+| **Akun demo** | username `demo` / password: demo |
 
 ---
 
