@@ -37,6 +37,11 @@ export default function Login() {
   async function kirim(e: FormEvent) {
     e.preventDefault();
     setGalat("");
+    if (!username.trim() || !password) {
+      setGalat("Isi nama pengguna dan kata sandi.");
+      document.getElementById(!username.trim() ? "u" : "p")?.focus();
+      return;
+    }
     if (daftarMode) {
       const g = periksaDaftar(namaToko, password, ulang);
       setGalatIsian(g);
@@ -70,7 +75,6 @@ export default function Login() {
     setUsername(baru === "daftar" ? "" : "demo");
   }
 
-  const bisaKirim = daftarMode ? !!(namaToko.trim() && username && password && ulang) : !!(username && password);
 
   return (
     <main className="login" id="isi">
@@ -82,6 +86,10 @@ export default function Login() {
           </h1>
         </div>
         <p className="login-tagline">
+          {/* Coretan kuning penanda "ramai", hiasan saja. */}
+          <svg className="ilu-coretan ilu-coretan-judul" viewBox="0 0 40 32" aria-hidden="true">
+            <path d="M6 18 9 4M18 22 34 10" />
+          </svg>
           Chat grup ramai,
           <br />
           rekap tetap <span className="sorot">rapi.</span>
@@ -90,10 +98,17 @@ export default function Login() {
 
         {/* Ilustrasi alur produk: pesan bebas di grup dibaca jadi baris rekap. Hiasan, isinya samaran. */}
         <div className="login-ilustrasi" aria-hidden="true">
+          <svg className="ilu-coretan ilu-coretan-chat" viewBox="0 0 24 28" aria-hidden="true">
+            <path d="M4 6 16 10M3 22 15 18" />
+          </svg>
           <div className="ilu-chat">
             <span className="ilu-gelembung">kak ayam bakar 2 ya, ambil jam 12</span>
             <span className="ilu-gelembung ilu-gelembung-2">es teh 3 juga kak</span>
           </div>
+          <svg className="ilu-panah" viewBox="0 0 96 40" aria-hidden="true">
+            <path d="M4 14C28 34 60 36 86 22" />
+            <path d="M74 14 88 21 78 33" />
+          </svg>
           <div className="ilu-rekap">
             <div className="ilu-rekap-kepala">
               <span>Rekap pesanan</span>
@@ -114,15 +129,22 @@ export default function Login() {
 
         <ul className="login-poin">
           <li>
-            <Icon nama="chat" ukuran={16} /> AI membaca chat
+            <Icon nama="chat" ukuran={18} /> AI membaca chat
           </li>
           <li>
-            <Icon nama="dompet" ukuran={16} /> Harga dihitung kode
+            <Icon nama="dompet" ukuran={18} /> Harga dihitung kode
           </li>
           <li>
-            <Icon nama="centang" ukuran={16} /> Anda yang menyetujui
+            <Icon nama="centang" ukuran={18} /> Anda yang menyetujui
           </li>
         </ul>
+        {/* Ikon chat samar di pojok, hanya di layar lebar. */}
+        <span className="login-hias login-hias-1" aria-hidden="true">
+          <Icon nama="chat" ukuran={88} />
+        </span>
+        <span className="login-hias login-hias-2" aria-hidden="true">
+          <Icon nama="chat" ukuran={64} />
+        </span>
       </section>
 
       <div className="login-panel">
@@ -260,7 +282,7 @@ export default function Login() {
                 <Icon nama="peringatan" ukuran={18} /> {galat}
               </p>
             )}
-            <Tombol type="submit" varian="utama" besar penuh memuat={jalan} disabled={!bisaKirim}>
+            <Tombol type="submit" varian="utama" besar penuh memuat={jalan}>
               {mode === "masuk" ? "Masuk" : "Daftar dan masuk"}
             </Tombol>
             <p className="login-ganti">
@@ -270,11 +292,10 @@ export default function Login() {
               </button>
             </p>
           </form>
+          <p className="login-catatan">
+            <Icon nama="perisai" ukuran={18} /> Nomor telepon pembeli disamarkan sebelum dibaca AI.
+          </p>
         </Kaca>
-
-        <p className="login-catatan">
-          <Icon nama="perisai" ukuran={18} /> Nomor telepon pembeli disamarkan sebelum dibaca AI.
-        </p>
       </div>
     </main>
   );
