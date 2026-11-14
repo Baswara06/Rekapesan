@@ -8,6 +8,8 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
+from app.api.kepemilikan import batch_milik, pemilik_aktif
+from app.core.errors import ApiError
 from app.db import get_db
 from app.parser import FormatTidakDikenal
 from app.parser.whatsapp import MAKS_UKURAN_BYTE
@@ -26,8 +28,13 @@ def _galat(status: int, kode: str, pesan: str) -> JSONResponse:
 
 
 @router.post("/batches/{batch_id}/import", response_model=ImportResult)
-async def impor_chat(batch_id: str, request: Request, db: Session = Depends(get_db)):
+async def impor_chat(batch_id: str, request: Request, db: Session = Depends(get_db), pemilik: str = Depends(pemilik_aktif)):
+    try:
+        batch_milik(db, batch_id, pemilik)
+    except ApiError:
+        return _galat(404, "tidak_ditemukan", "Batch tidak ditemukan.")
     data: bytes | str | None = None
+
     if "application/json" in request.headers.get("content-type", ""):
         try:
             badan = await request.json()

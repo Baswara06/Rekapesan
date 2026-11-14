@@ -19,7 +19,9 @@ from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.db import Batch, Product, Recipe, get_engine, init_db
+
 from app.schemas import ExtractedItem, Extraction
 from app.services import import_batch
 
@@ -62,11 +64,12 @@ def ekstraksi_tersimpan(ids: dict[str, str]) -> dict[str, Extraction]:
 
 
 def _isi_katalog(db: Session) -> dict[str, str]:
-    ada = {p.nama: p for p in db.scalars(select(Product))}
+    pemilik = get_settings().demo_username
+    ada = {p.nama: p for p in db.scalars(select(Product).where(Product.pemilik == pemilik))}
     for k in KATALOG:
         if k["nama"] in ada:
             continue
-        p = Product(nama=k["nama"], alias=k["alias"], harga=k["harga"], stok_harian=k["stok_harian"])
+        p = Product(pemilik=pemilik, nama=k["nama"], alias=k["alias"], harga=k["harga"], stok_harian=k["stok_harian"])
         p.resep = [Recipe(bahan=b, jumlah=j, satuan=s) for b, j, s in k["resep"]]
         db.add(p)
         ada[k["nama"]] = p
@@ -79,7 +82,7 @@ def isi_data_demo(db: Session, reset: bool = False) -> str:
     if not BERKAS_CONTOH.exists():
         raise FileNotFoundError(f"Berkas contoh tidak ada: {BERKAS_CONTOH}")
 
-    batch = db.scalar(select(Batch).where(Batch.nama == NAMA_BATCH))
+    batch = db.scalar(select(Batch).where(Batch.nama == NAMA_BATCH, Batch.pemilik == get_settings().demo_username))
     if batch is not None and not reset:
         return f"Batch demo sudah ada (id {batch.id}). Pakai --reset untuk mengisi ulang."
     if batch is not None:
@@ -87,7 +90,10 @@ def isi_data_demo(db: Session, reset: bool = False) -> str:
         db.commit()
 
     ids = _isi_katalog(db)
-    batch = Batch(nama=NAMA_BATCH, tanggal_kirim=date(2026, 11, 13), tanggal_mulai=date(2026, 11, 12))
+    batch = Batch(
+        pemilik=get_settings().demo_username, nama=NAMA_BATCH, tanggal_kirim=date(2026, 11, 13), tanggal_mulai=date(2026, 11, 12)
+    )
+
     db.add(batch)
     db.commit()
 

@@ -2938,3 +2938,26 @@ h1 {
     animation: none;
   }
 }
+
+/* ---------- Daftar akun ---------- */
+.login-catatan-isian {
+  margin-top: 0.35rem;
+  color: var(--steel);
+  font-size: 13px;
+}
+.login-ganti {
+  text-align: center;
+  color: var(--steel);
+  font-size: 14px;
+}
+.tombol-tautan {
+  min-height: 44px;
+  padding: 0 0.4rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}

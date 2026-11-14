@@ -213,7 +213,9 @@ async def _impor(
         baris_pesan.setdefault(p.pengirim, []).append(baris)
         per_pengirim.setdefault(p.pengirim, []).append(p)
 
-    products = list(db.scalars(select(Product)))
+    # Hanya katalog milik penjual batch ini yang dikirim ke LLM dan dipakai menghitung.
+    products = list(db.scalars(select(Product).where(Product.pemilik == batch.pemilik)))
+
     katalog_llm = katalog_untuk_llm(products)
     katalog = katalog_untuk_rules(products)
     ambang = ambang_jumlah_tidak_wajar or get_settings().jumlah_tidak_wajar_default

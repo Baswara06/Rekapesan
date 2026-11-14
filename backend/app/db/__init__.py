@@ -17,6 +17,7 @@ from app.db.models import (
     Payment,
     Product,
     Recipe,
+    User,
 )
 from app.db.session import (
     get_db,
@@ -45,6 +46,8 @@ __all__ = [
     "Payment",
     "Product",
     "Recipe",
+    "User",
+
     "get_db",
     "get_engine",
     "get_readonly_engine",

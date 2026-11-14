@@ -1,13 +1,16 @@
-"""Autentikasi sederhana: satu akun demo, token bertanda tangan HMAC. Pemilik: Raihan.
+"""Autentikasi sederhana: akun demo dari `.env` dan akun hasil register, token bertanda tangan HMAC. Pemilik: Raihan.
 
 Token = base64url(JSON {sub, exp}) + "." + base64url(HMAC-SHA256). Tanpa pustaka tambahan.
-Kunci dari `APP_SECRET_KEY`, akun dari `DEMO_USERNAME` dan `DEMO_PASSWORD` di `.env`.
+Kunci dari `APP_SECRET_KEY`. Akun demo dari `DEMO_USERNAME` dan `DEMO_PASSWORD` di `.env`,
+akun lain dari tabel `users` dengan kata sandi di-hash PBKDF2-SHA256 (kata sandi asli tidak disimpan).
+`sub` di token adalah username, dipakai sebagai `pemilik` katalog dan batch.
 """
 
 import base64
 import hashlib
 import hmac
 import json
+import os
 import time
 
 from fastapi import Request
@@ -16,6 +19,7 @@ from app.core.config import KUNCI_BAWAAN, KUNCI_MINIMAL, get_settings
 from app.core.errors import ApiError
 
 MASA_BERLAKU_DETIK = 12 * 3600
+ITERASI_HASH = 200_000
 
 
 def _b64(data: bytes) -> str:
@@ -64,13 +68,32 @@ def periksa_token(token: str, sekarang: float | None = None) -> str | None:
         return None
 
 
+def hash_password(password: str) -> str:
+    garam = os.urandom(16)
+    turunan = hashlib.pbkdf2_hmac("sha256", password.encode(), garam, ITERASI_HASH)
+    return f"pbkdf2_sha256${ITERASI_HASH}${_b64(garam)}${_b64(turunan)}"
+
+
+def cek_password(password: str, simpanan: str) -> bool:
+    try:
+        skema, iterasi, garam, turunan = simpanan.split("$")
+        if skema != "pbkdf2_sha256":
+            return False
+        hitung = hashlib.pbkdf2_hmac("sha256", password.encode(), _unb64(garam), int(iterasi))
+        return hmac.compare_digest(hitung, _unb64(turunan))
+    except (ValueError, TypeError):
+        return False
+
+
 def cocok_akun(username: str, password: str) -> bool:
+    """Cocokkan dengan akun demo dari `.env`."""
     s = get_settings()
     if not kunci_sah() or not s.demo_password:
         return False  # akun demo belum diatur: tolak semua, jangan buka akses tanpa kata sandi
     ok_user = hmac.compare_digest(username.encode(), s.demo_username.encode())
     ok_pass = hmac.compare_digest(password.encode(), s.demo_password.encode())
     return ok_user and ok_pass
+
 
 
 def require_login(request: Request) -> str:

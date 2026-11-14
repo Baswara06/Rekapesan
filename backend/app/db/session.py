@@ -4,7 +4,7 @@ import sqlite3
 from collections.abc import Iterator
 from functools import lru_cache
 
-from sqlalchemy import Engine, create_engine, event
+from sqlalchemy import Engine, create_engine, event, inspect, text
 from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -64,8 +64,23 @@ def get_readonly_engine() -> Engine:
 
 
 def init_db(engine: Engine | None = None) -> None:
-    """Buat semua tabel yang belum ada. Aman dipanggil berulang."""
-    Base.metadata.create_all(engine or get_engine())
+    """Buat semua tabel yang belum ada, lalu tambahkan kolom `pemilik` ke database lama. Aman dipanggil berulang."""
+    engine = engine or get_engine()
+    Base.metadata.create_all(engine)
+    _tambah_kolom_pemilik(engine)
+
+
+def _tambah_kolom_pemilik(engine: Engine) -> None:
+    """Database dari sebelum ada register belum punya kolom `pemilik`: tambahkan, lalu serahkan data lama ke akun demo."""
+    pemilik_lama = get_settings().demo_username
+    with engine.begin() as conn:
+        for tabel in ("products", "batches"):
+            kolom = {k["name"] for k in inspect(conn).get_columns(tabel)}
+            if "pemilik" not in kolom:
+                conn.execute(text(f"ALTER TABLE {tabel} ADD COLUMN pemilik VARCHAR(32)"))
+                conn.execute(text(f"CREATE INDEX IF NOT EXISTS ix_{tabel}_pemilik ON {tabel} (pemilik)"))
+            conn.execute(text(f"UPDATE {tabel} SET pemilik = :p WHERE pemilik IS NULL"), {"p": pemilik_lama})
+
 
 
 def get_db() -> Iterator[Session]:

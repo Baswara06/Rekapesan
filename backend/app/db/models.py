@@ -2,6 +2,7 @@
 
 Bentuk tabel mengikuti `docs/api-contract.md`. Uang dalam rupiah (integer).
 Semua tabel milik sebuah batch terhapus ikut batch-nya (cascade), termasuk pesan mentah.
+Katalog (`products`) dan batch punya `pemilik` (username penjual). Tabel lain ikut pemilik batch-nya.
 """
 
 import uuid
@@ -33,10 +34,23 @@ class Base(DeclarativeBase):
     pass
 
 
+class User(Base):
+    """Akun penjual hasil register. Akun demo dari `.env` tidak disimpan di sini."""
+
+    __tablename__ = "users"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    username: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(200))
+    dibuat_pada: Mapped[datetime] = mapped_column(DateTime, default=_sekarang)
+
+
 class Product(Base):
     __tablename__ = "products"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    # Username penjual pemilik menu. Data lama tanpa pemilik diberikan ke akun demo saat `init_db`.
+    pemilik: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
     nama: Mapped[str] = mapped_column(String(120))
     alias: Mapped[list[str]] = mapped_column(JSON, default=list)
     harga: Mapped[int] = mapped_column(Integer)
@@ -68,8 +82,10 @@ class Batch(Base):
     __tablename__ = "batches"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    pemilik: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
     nama: Mapped[str] = mapped_column(String(120))
     tanggal_kirim: Mapped[date] = mapped_column(Date)
+
     # Tanggal chat PO dibuka. Pesan sebelum tanggal ini dibuang saat impor. None = tanpa saringan.
     tanggal_mulai: Mapped[date | None] = mapped_column(Date, nullable=True)
     dibuat_pada: Mapped[datetime] = mapped_column(DateTime, default=_sekarang)

@@ -11,7 +11,8 @@ ada tanda basi: membatalkan satu pesanan besar langsung melepas tanda pesanan se
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from app.db.models import STATUS_BATAL, Order, Product
+from app.db.models import STATUS_BATAL, Batch, Order, Product
+
 from app.rules import atur_tanda, qty_per_produk, stok_kurang
 
 
@@ -21,7 +22,8 @@ def segarkan_tanda_stok(db: Session, batch_id: str) -> None:
     Tidak melakukan commit: pemanggil yang menutup transaksinya.
     """
     db.flush()
-    katalog = {p.id: {"stok_harian": p.stok_harian} for p in db.scalars(select(Product))}
+    pemilik = select(Batch.pemilik).where(Batch.id == batch_id).scalar_subquery()
+    katalog = {p.id: {"stok_harian": p.stok_harian} for p in db.scalars(select(Product).where(Product.pemilik == pemilik))}
     orders = db.scalars(
         select(Order)
         .where(Order.batch_id == batch_id, Order.status != STATUS_BATAL)
