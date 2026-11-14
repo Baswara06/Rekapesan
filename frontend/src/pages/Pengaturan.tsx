@@ -24,7 +24,7 @@ export default function Pengaturan() {
 
   return (
     <div className="tumpuk halaman-sempit">
-      <Kepala judul="Pengaturan" kembali="#/lainnya" />
+      <Kepala judul="Pengaturan" kembali="#/" />
 
       {akun && (
         <Kaca className="kartu">
