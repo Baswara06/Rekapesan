@@ -30,14 +30,22 @@ async def pratinjau_impor(request: Request, db: Session = Depends(get_db), pemil
 
 
 @router.post("/impor")
-async def impor_per_hari(request: Request, db: Session = Depends(get_db), pemilik: str = Depends(pemilik_aktif)):
+async def impor_per_hari(
+    request: Request,
+    baca_bukti: bool = False,
+    penjual: str | None = None,
+    db: Session = Depends(get_db),
+    pemilik: str = Depends(pemilik_aktif),
+):
+    """`baca_bukti=true`: foto dari pembeli di .zip dikirim ke model vision untuk dibaca sebagai bukti transfer.
+    `penjual`: nama pengirim penjual di chat; pesannya tidak diekstrak sebagai pesanan."""
     if db.scalar(produk_milik(pemilik).where(Product.aktif.is_(True)).limit(1)) is None:
         return _galat(409, "katalog_kosong", "Isi menu di Katalog dulu. Tanpa menu, pesanan tidak bisa dicocokkan dan harganya tidak bisa dihitung.")
     data = await baca_badan(request)
     if isinstance(data, JSONResponse):
         return data
     try:
-        return await impor_harian(db, pemilik, data)
+        return await impor_harian(db, pemilik, data, baca_bukti=baca_bukti, penjual=(penjual or "").strip() or None)
     except FormatTidakDikenal as exc:
         return _galat(400, "format_file_tidak_dikenal", str(exc))
     except EkstraksiGagalTotal as exc:

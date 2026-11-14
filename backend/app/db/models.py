@@ -197,6 +197,8 @@ class Payment(Base):
     nominal: Mapped[int | None] = mapped_column(Integer, nullable=True)
     cocok: Mapped[bool] = mapped_column(Boolean, default=False)
     dikonfirmasi: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Nama foto di ekspor .zip bila saran ini dibaca otomatis saat impor (supaya impor ulang tidak membaca dua kali).
+    berkas: Mapped[str | None] = mapped_column(String(255), nullable=True)
     dibuat_pada: Mapped[datetime] = mapped_column(DateTime, default=_sekarang)
 
     order: Mapped[Order] = relationship(back_populates="payments")

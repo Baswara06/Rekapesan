@@ -69,6 +69,13 @@ def init_db(engine: Engine | None = None) -> None:
     Base.metadata.create_all(engine)
     _tambah_kolom_pemilik(engine)
     _tambah_kolom_nama_toko(engine)
+    _tambah_kolom_berkas_bukti(engine)
+
+
+def _tambah_kolom_berkas_bukti(engine: Engine) -> None:
+    with engine.begin() as conn:
+        if "berkas" not in {k["name"] for k in inspect(conn).get_columns("payments")}:
+            conn.execute(text("ALTER TABLE payments ADD COLUMN berkas VARCHAR(255)"))
 
 
 def _tambah_kolom_nama_toko(engine: Engine) -> None:

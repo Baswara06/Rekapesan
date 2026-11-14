@@ -164,15 +164,18 @@ async def import_batch(
     file_or_text: IO[bytes] | bytes | str,
     extractor: Extractor | None = None,
     ambang_jumlah_tidak_wajar: int | None = None,
+    penjual: str | None = None,
 ) -> ImportResult:
     """Impor satu berkas ekspor atau teks tempel ke sebuah batch.
 
     `extractor` bisa diganti (uji, data demo tersimpan). Default: `app.extractor.extract_orders`.
     Melempar `BatchTidakDitemukan`, `FormatTidakDikenal`, `EkstraksiGagalTotal`, atau `ImporBentrok`.
     Pada dua galat terakhir tidak ada yang tersimpan, jadi impor yang sama aman diulang.
+    `penjual`: nama pengirim penjual di chat. Pesannya tetap disimpan, tapi tidak diekstrak sebagai pesanan
+    (chat satu lawan satu tanpa daftar menu: "51 k" dari penjual bukan pesanan).
     """
     try:
-        return await _impor(db, batch_id, file_or_text, extractor, ambang_jumlah_tidak_wajar)
+        return await _impor(db, batch_id, file_or_text, extractor, ambang_jumlah_tidak_wajar, penjual)
     except IntegrityError as exc:
         # Sidik unik per batch: impor lain yang berjalan bersamaan sudah menyimpan pesan ini.
         db.rollback()
@@ -188,6 +191,7 @@ async def _impor(
     file_or_text: IO[bytes] | bytes | str,
     extractor: Extractor | None,
     ambang_jumlah_tidak_wajar: int | None,
+    penjual: str | None = None,
 ) -> ImportResult:
     if extractor is None:
         from app.extractor import extract_orders as extractor  # noqa: PLC0415 - hindari impor melingkar
@@ -233,7 +237,7 @@ async def _impor(
 
     # 1) Ekstraksi: satu panggilan per pengirim, paralel. Teks disamarkan dulu.
     kunci = asyncio.Semaphore(MAKS_PARALEL)
-    pengirim_urut = list(per_pengirim)
+    pengirim_urut = [n for n in per_pengirim if n != penjual]
     tugas = []
     for nama in pengirim_urut:
         samaran = [
@@ -247,7 +251,7 @@ async def _impor(
     keluaran = await asyncio.gather(*tugas)
     ekstraksi = [e for e, _ in keluaran]
     galat = [g for _, g in keluaran if g is not None]
-    if len(galat) == len(keluaran):
+    if keluaran and len(galat) == len(keluaran):
         # Tidak ada satu pun yang berhasil: ini masalah LLM, bukan isi chat. Jangan simpan apa pun.
         raise EkstraksiGagalTotal("kuota_llm_habis" if any(_kuota_habis(g) for g in galat) else "llm_gagal")
 

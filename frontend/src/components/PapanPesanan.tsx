@@ -137,12 +137,16 @@ export function PapanPesanan({ data, saatBerubah }: { data: Ringkasan; saatBerub
   }
 
   function minta(o: PesananPapan, jenis: "selesai" | "lunas" | SaranPesanan["jenis"], kutipan?: string | null) {
-    const lunas = jenis === "lunas" || jenis === "sudah_bayar";
-    const dariChat = jenis === "sudah_bayar" || jenis === "sudah_terima";
+    const lunas = jenis === "lunas" || jenis === "sudah_bayar" || jenis === "bukti_transfer";
+    const dariChat = jenis === "sudah_bayar" || jenis === "sudah_terima" || jenis === "bukti_transfer";
     setTunda({
       judul: lunas ? "Tandai lunas?" : "Tandai selesai?",
       pesan:
-        (dariChat ? `Di chat, ${o.nama} menulis: "${kutipan ?? "-"}". ` : "") +
+        (jenis === "bukti_transfer"
+          ? `AI membaca foto bukti transfer ${kutipan ?? ""}. Cocokkan dengan mutasi rekening Anda. `
+          : dariChat
+            ? `Di chat, ${o.nama} menulis: "${kutipan ?? "-"}". `
+            : "") +
         (lunas
           ? `Pesanan ${o.nama} (${rupiah(o.total)}) akan ditandai sudah dibayar. Pastikan uangnya memang sudah masuk.`
           : `Pesanan ${o.nama} akan ditandai sudah dikirim dan diterima.`),
@@ -261,7 +265,13 @@ function KartuPapan({
   const saran =
     o.status_papan === "batal"
       ? []
-      : o.saran.filter((s) => (s.jenis === "sudah_bayar" ? o.bayar === "belum" : o.status_papan !== "selesai"));
+      : o.saran.filter((s) =>
+          s.jenis === "sudah_bayar" || s.jenis === "bukti_transfer"
+            ? o.bayar === "belum"
+            : s.jenis === "bayar_dobel"
+              ? true
+              : o.status_papan !== "selesai",
+        );
   const tanda = o.tanda.filter((k) => k in TANDA);
 
   return (
@@ -300,13 +310,20 @@ function KartuPapan({
           {saran.map((s, i) => (
             <li key={`${s.jenis}-${i}`}>
               <p className="kecil">
-                <Icon nama="chat" ukuran={16} /> <strong>{s.teks}</strong>
+                <Icon nama={s.jenis === "bukti_transfer" ? "gambar" : s.jenis === "bayar_dobel" ? "peringatan" : "chat"} ukuran={16} /> <strong>{s.teks}</strong>
                 {s.kutipan && <span className="redup"> "{s.kutipan}"</span>}
               </p>
-              {perluCek ? (
+              {s.jenis === "bayar_dobel" ? (
+                <p className="kecil redup">Cek mutasi rekening, lalu kembalikan kelebihannya ke pembeli bila memang dobel.</p>
+              ) : perluCek ? (
                 <p className="kecil redup">Setujui pesanan dulu sebelum menandainya.</p>
               ) : (
-                <Tombol className="tombol-papan" ikon={s.jenis === "sudah_bayar" ? "dompet" : "truk"} disabled={sibuk} onClick={() => minta(s.jenis, s.kutipan)}>
+                <Tombol
+                  className="tombol-papan"
+                  ikon={s.jenis === "sudah_terima" ? "truk" : "dompet"}
+                  disabled={sibuk}
+                  onClick={() => minta(s.jenis, s.kutipan)}
+                >
                   {s.teks}
                 </Tombol>
               )}

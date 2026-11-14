@@ -112,6 +112,10 @@ Alur utama baru: penjual cukup memasukkan chat, tanpa membuat PO dulu. Endpoint 
 | POST | `/impor` | Body sama dengan impor. Satu batch per tanggal chat (maks 14 hari terakhir), lalu impor tiap hari |
 | GET | `/ringkasan` | Papan pesanan: keseluruhan, per hari, per jam |
 
+`POST /impor` menerima query opsional `penjual` (nama pengirim penjual di chat; pesannya disimpan tapi tidak diekstrak sebagai pesanan, untuk chat satu lawan satu tanpa daftar menu) dan `baca_bukti=true` (.zip dengan media: foto dari pembeli yang punya pesanan di hari itu, maksimal 30, dibaca `read_payment_proof`; hasilnya `Payment` belum dikonfirmasi dengan `berkas` = nama foto, sehingga impor ulang tidak membacanya lagi). Respons menambah `bukti_terbaca`. `/impor/pratinjau` menambah `pengirim` (semua pengirim, terbanyak dulu).
+
+Jenis `saran` di `/ringkasan`: `sudah_bayar`, `sudah_terima` (dari pembeli, atau "Penjual bilang sudah diantar" bila hari itu hanya ada satu pembeli), `bukti_transfer` (foto bukti: nominal dan cocok/beda dengan total), `bayar_dobel` (informasi saja, mis. "kebayar 2 kali"). Semua tetap hanya saran.
+
 `/impor/pratinjau`:
 
 ```json

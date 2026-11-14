@@ -29,6 +29,7 @@ from app.db.models import (
 )
 from app.parser import parse_export
 from app.schemas import Message
+from app.services.bukti_service import baca_bukti_dari_zip
 from app.services.import_service import ImportResult, import_batch
 
 MAKS_HARI = 14
@@ -52,6 +53,16 @@ _SUDAH_TERIMA = re.compile(
     r"\b(udah|sudah|dah|udh|sdh)\s+(sampai|sampe|nyampe|nyampai|diterima|terima)\b",
     re.IGNORECASE,
 )
+# Dari data chat asli: pembeli yang terbayar dua kali, dan penjual yang mengabarkan pesanan sudah diantar.
+_BAYAR_DOBEL = re.compile(r"\b(ke)?(bayar|tf|transfer)\w*\s+(2|dua)\s*(kali|x)\b|\bdouble\s+(bayar|tf|transfer)\b", re.IGNORECASE)
+_SUDAH_DIANTAR = re.compile(
+    r"\b(udah|sudah|dah|udh|sdh)\s+(di\s*)?(depan|gantung|digantung|antar|anter|kirim|taruh|taro)\b",
+    re.IGNORECASE,
+)
+
+
+def _rupiah(n: int | None) -> str:
+    return "Rp" + f"{n or 0:,}".replace(",", ".")
 
 
 def nama_hari(tanggal: date) -> str:
@@ -207,12 +218,22 @@ def pratinjau(file_or_text: IO[bytes] | bytes | str, products: list[Product]) ->
         "jumlah_pesan": sum(per_hari[h] for h in hari),
         "hari": [{"tanggal": h.isoformat(), "jumlah_pesan": per_hari[h]} for h in hari],
         "menu": list(menu.values()),
+        # Semua pengirim (terbanyak dulu), supaya penjual bisa dipilih bila tidak terdeteksi otomatis.
+        "pengirim": [n for n, _ in Counter(p.pengirim for p in pesan).most_common()],
         # Tebakan kode, bukan pasti menu: ditampilkan tanpa centang dan tanpa harga, penjual yang memutuskan.
         "menu_dari_pembeli": menu_pembeli,
     }
 
 
-async def impor_harian(db: Session, pemilik: str, file_or_text: bytes | str, extractor: Any = None) -> dict[str, Any]:
+async def impor_harian(
+    db: Session,
+    pemilik: str,
+    file_or_text: bytes | str,
+    extractor: Any = None,
+    baca_bukti: bool = False,
+    pembaca: Any = None,
+    penjual: str | None = None,
+) -> dict[str, Any]:
     """Satu batch per tanggal (tanggal_mulai = tanggal_kirim = hari itu), lalu `import_batch` untuk tiap hari.
 
     Saringan tanggal di `import_batch` memisah pesan per hari. Hari yang batch-nya baru dibuat dan tidak
@@ -222,6 +243,7 @@ async def impor_harian(db: Session, pemilik: str, file_or_text: bytes | str, ext
     tanggal = sorted({p.waktu.date() for p in parse_export(file_or_text, None)})[-MAKS_HARI:]
     hari: list[dict[str, Any]] = []
     total = ImportResult()
+    bukti = 0
     for t in tanggal:
         batch = db.scalar(
             select(Batch).where(Batch.pemilik == pemilik, Batch.tanggal_mulai == t, Batch.tanggal_kirim == t)
@@ -231,16 +253,18 @@ async def impor_harian(db: Session, pemilik: str, file_or_text: bytes | str, ext
             batch = Batch(pemilik=pemilik, nama=nama_hari(t), tanggal_mulai=t, tanggal_kirim=t)
             db.add(batch)
             db.commit()
-        hasil = await import_batch(db, batch.id, file_or_text, extractor=extractor)
+        hasil = await import_batch(db, batch.id, file_or_text, extractor=extractor, penjual=penjual)
         punya_pesanan = db.scalar(select(Order.id).where(Order.batch_id == batch.id).limit(1)) is not None
         if baru and not punya_pesanan:
             db.delete(batch)
             db.commit()
             continue
+        if baca_bukti:
+            bukti += await baca_bukti_dari_zip(db, batch.id, file_or_text, pembaca)
         hari.append({"tanggal": t.isoformat(), "batch_id": batch.id, "nama": batch.nama, **hasil.model_dump()})
         for k in ImportResult.model_fields:
             setattr(total, k, getattr(total, k) + getattr(hasil, k))
-    return {"hari": hari, "total": total.model_dump()}
+    return {"hari": hari, "total": total.model_dump(), "bukti_terbaca": bukti}
 
 
 def _status_papan(status: str) -> str:
@@ -257,10 +281,44 @@ def _lunas(order: Order) -> bool:
     return order.status == STATUS_DIBAYAR or any(p.dikonfirmasi for p in order.payments)
 
 
-def _saran(pesan_pembeli: list[MessageRow], papan: str, lunas: bool) -> list[dict[str, str]]:
+def _cari(pesan: list[MessageRow], pola: re.Pattern[str]) -> MessageRow | None:
+    return next((m for m in reversed(pesan) if pola.search(m.isi)), None)
+
+
+def _kutip(teks: str) -> str:
+    return teks if len(teks) <= 80 else teks[:80] + "…"
+
+
+def _saran(
+    pesan_pembeli: list[MessageRow],
+    papan: str,
+    lunas: bool,
+    order: Order | None = None,
+    pesan_antar: list[MessageRow] | None = None,
+) -> list[dict[str, str | None]]:
     if papan == "batal":
         return []
-    saran: list[dict[str, str]] = []
+    saran: list[dict[str, str | None]] = []
+    if order is not None and not lunas:
+        # Foto bukti transfer yang dibaca model saat impor (.zip dengan media). Belum dikonfirmasi penjual.
+        bukti = [p for p in order.payments if p.nominal and not p.dikonfirmasi]
+        if bukti:
+            b = bukti[-1]
+            cocok = "cocok dengan total" if b.cocok else f"beda dengan total {_rupiah(order.total)}"
+            saran.append(
+                {
+                    "jenis": "bukti_transfer",
+                    "teks": f"Bukti transfer {_rupiah(b.nominal)} · {cocok}",
+                    "kutipan": f"dari foto di chat{f', atas nama {b.nama}' if b.nama else ''}",
+                }
+            )
+    dobel = _cari(pesan_pembeli, _BAYAR_DOBEL)
+    if dobel is not None:
+        saran.append({"jenis": "bayar_dobel", "teks": "Pembeli bilang terbayar dua kali", "kutipan": _kutip(dobel.isi)})
+    if papan != "selesai" and pesan_antar:
+        antar = _cari(pesan_antar, _SUDAH_DIANTAR)
+        if antar is not None:
+            saran.append({"jenis": "sudah_terima", "teks": "Penjual bilang sudah diantar", "kutipan": _kutip(antar.isi)})
     for jenis, pola, teks, perlu in (
         ("sudah_bayar", _SUDAH_BAYAR, "Pembeli bilang sudah bayar", not lunas),
         ("sudah_terima", _SUDAH_TERIMA, "Pembeli bilang sudah terima", papan != "selesai"),
@@ -300,6 +358,12 @@ def ringkasan(db: Session, pemilik: str) -> dict[str, Any]:
         for m in db.scalars(select(MessageRow).where(MessageRow.batch_id == b.id).order_by(MessageRow.waktu)):
             pesan_per_pengirim.setdefault(m.pengirim, []).append(m)
 
+        # Chat satu lawan satu: pengirim lain yang tidak punya pesanan adalah penjual. "Kak sudah di depan" darinya
+        # hanya dipakai bila hari itu cuma ada satu pembeli, supaya tidak salah tempel di chat grup.
+        pembeli = {o.customer.nama_tampil for o in orders}
+        pesan_antar = (
+            [m for n, ms in pesan_per_pengirim.items() if n not in pembeli for m in ms] if len(pembeli) == 1 else []
+        )
         per_jam: dict[str | None, list[dict[str, Any]]] = {}
         for o in orders:
             papan = _status_papan(o.status)
@@ -325,7 +389,7 @@ def ringkasan(db: Session, pemilik: str) -> dict[str, Any]:
                         for it in o.items
                     ],
                     "tanda": list(o.tanda or []),
-                    "saran": _saran(pesan_per_pengirim.get(o.customer.nama_tampil, []), papan, lunas),
+                    "saran": _saran(pesan_per_pengirim.get(o.customer.nama_tampil, []), papan, lunas, o, pesan_antar),
                 }
             )
         jam = sorted(per_jam, key=lambda j: (j is None, j or ""))
