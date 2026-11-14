@@ -51,7 +51,7 @@ export default function Katalog() {
               <li key={p.id}>
                 <Kaca className="kartu kartu-menu redup-kartu">
                   <div className="menu-kepala">
-                    <h3>{p.nama}</h3>
+                    <h2>{p.nama}</h2>
                     <span className="harga">{rupiah(p.harga)}</span>
                   </div>
                   <Tombol
@@ -102,7 +102,7 @@ function KartuMenu({ p, ubah, matikan }: { p: Product; ubah: () => void; matikan
   return (
     <Kaca as="article" className="kartu kartu-menu">
       <div className="menu-kepala">
-        <h3>{p.nama}</h3>
+        <h2>{p.nama}</h2>
         <span className="harga">{rupiah(p.harga)}</span>
       </div>
       <p className="menu-stok">

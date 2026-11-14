@@ -121,19 +121,25 @@ export function Memuat({ baris = 3, label = "Memuat data" }: { baris?: number; l
   );
 }
 
-export function Galat({ galat, ulang }: { galat: ApiError | Error; ulang?: () => void }) {
+export function Galat({ galat, ulang, children }: { galat: ApiError | Error; ulang?: () => void; children?: ReactNode }) {
   const kode = "kode" in galat ? (galat as ApiError).kode : "";
   const kuota = kode === "kuota_llm_habis";
+  const judul = kuota ? "Kuota AI sedang habis" : kode === "katalog_kosong" ? "Belum ada menu" : "Ada kendala";
   return (
     <div className="kotak-galat" role="alert">
       <Icon nama={kuota ? "info" : "peringatan"} ukuran={26} />
       <div>
-        <strong>{kuota ? "Kuota AI sedang habis" : "Ada kendala"}</strong>
+        <strong>{judul}</strong>
         <p>{galat.message}</p>
-        {ulang && (
-          <Tombol ikon="ulang" onClick={ulang}>
-            Coba lagi
-          </Tombol>
+        {(ulang || children) && (
+          <div className="baris-tombol">
+            {children}
+            {ulang && (
+              <Tombol ikon="ulang" onClick={ulang}>
+                Coba lagi
+              </Tombol>
+            )}
+          </div>
         )}
       </div>
     </div>

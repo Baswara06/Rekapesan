@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon, type NamaIkon } from "./components/Icon";
 import { TandaLogo, TeksLogo } from "./components/Logo";
 import { Toasts } from "./components/ui";
@@ -21,7 +21,8 @@ const NAV: { path: string; label: string; ikon: NamaIkon; cocok: string[] }[] = 
   { path: "/impor", label: "Impor", ikon: "impor", cocok: ["impor"] },
   { path: "/cek", label: "Cek", ikon: "cek", cocok: ["cek", "pesanan"] },
   { path: "/rekap", label: "Rekap", ikon: "rekap", cocok: ["rekap"] },
-  { path: "/lainnya", label: "Lainnya", ikon: "lainnya", cocok: ["lainnya", "katalog", "tanya", "pengaturan"] },
+  // Tanya AI jadi tab sendiri supaya fitur AI terlihat di HP. Katalog dan Pengaturan lewat ikon gerigi di bilah atas.
+  { path: "/tanya", label: "Tanya AI", ikon: "tanya", cocok: ["tanya"] },
 ];
 
 /** Navigasi bilah atas di layar lebar: semua layar utama terlihat tanpa menu "Lainnya". */
@@ -33,6 +34,18 @@ const NAV_ATAS: { path: string; label: string; cocok: string[] }[] = [
   { path: "/tanya", label: "Tanya AI", cocok: ["tanya"] },
   { path: "/katalog", label: "Katalog", cocok: ["katalog"] },
 ];
+
+const JUDUL_LAYAR: Record<string, string> = {
+  "": "Beranda",
+  impor: "Masukkan chat",
+  cek: "Cek pesanan",
+  pesanan: "Detail pesanan",
+  rekap: "Rekap",
+  katalog: "Katalog menu",
+  tanya: "Tanya pesanan",
+  pengaturan: "Pengaturan",
+  lainnya: "Lainnya",
+};
 
 function useJumlahPerluCek(): number | null {
   const { batchAktif, versiData } = useApp();
@@ -67,6 +80,26 @@ export default function App() {
       window.removeEventListener("offline", off);
     };
   }, []);
+
+  // Aksesibilitas pindah layar: judul tab ikut berganti, fokus pindah ke judul layar baru, dan pembaca layar
+  // diberi tahu nama layarnya. Tanpa ini pengguna pembaca layar tidak tahu bahwa isi halaman sudah berganti.
+  const judulLayar = masuk ? (JUDUL_LAYAR[rute.segmen[0] ?? ""] ?? "Beranda") : "Masuk";
+  const pathSebelum = useRef(rute.path);
+  const [umumkan, setUmumkan] = useState("");
+  useEffect(() => {
+    document.title = `${judulLayar} · RekaPesan`;
+    // Hanya saat benar-benar pindah layar. Saat muat pertama fokus dibiarkan di awal dokumen.
+    if (pathSebelum.current === rute.path) return;
+    pathSebelum.current = rute.path;
+    setUmumkan(`Layar ${judulLayar}`);
+    const id = requestAnimationFrame(() => {
+      const tujuan = document.querySelector<HTMLElement>("#isi h1") ?? document.getElementById("isi");
+      if (!tujuan) return;
+      if (!tujuan.hasAttribute("tabindex")) tujuan.setAttribute("tabindex", "-1");
+      tujuan.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [rute.path, judulLayar]);
 
   if (!masuk) {
     return (
@@ -124,7 +157,7 @@ export default function App() {
       )}
       <header className="bilah-atas-wrap">
         <div className="bilah-atas">
-          <a href="#/" className="merek" aria-label="Rekapesan, ke beranda">
+          <a href="#/" className="merek" aria-label="RekaPesan, ke beranda">
             <TandaLogo ukuran={30} />
             <TeksLogo />
           </a>
@@ -146,7 +179,13 @@ export default function App() {
                 <span>{batchAktif.nama}</span>
               </a>
             )}
-            <a href="#/pengaturan" className="tombol tombol-hantu tombol-ikon" aria-label="Pengaturan">
+            <a
+              href="#/lainnya"
+              className="tombol tombol-hantu tombol-ikon"
+              aria-label="Lainnya: katalog dan pengaturan"
+              title="Katalog dan pengaturan"
+              aria-current={s0 === "lainnya" ? "page" : undefined}
+            >
               <Icon nama="pengaturan" ukuran={19} />
             </a>
           </div>
@@ -176,6 +215,9 @@ export default function App() {
         })}
       </nav>
       <Toasts />
+      <p className="sr" role="status" aria-live="polite">
+        {umumkan}
+      </p>
     </>
   );
 }

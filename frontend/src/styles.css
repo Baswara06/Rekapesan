@@ -1,30 +1,34 @@
-/* Rekapesan — kaca hangat yang hidup.
-   - Hijau daun untuk aksi, kuning saffron sebagai aksen, latar krem dengan gumpalan warna yang bergerak pelan.
-   - Kartu kaca dengan kilau yang mengikuti jari/kursor (posisi diisi main.tsx).
-   - Huruf: Plus Jakarta Sans untuk isi, Fraunces untuk judul dan angka besar.
+/* RekaPesan — gaya fintech yang tenang.
+   - Latar krem polos, kartu putih bersih, hijau hutan pekat untuk aksi dan kartu utama, sage/mint sebagai aksen.
+   - Saffron hanya untuk huruf "p" di logo, angka "perlu dicek", dan tanda kuning.
+   - Kelas .kaca tetap dipakai sebagai kartu (nama lama). Kilau kursor dimatikan lewat --kilau transparan.
+   - Huruf: Plus Jakarta Sans untuk semuanya. Judul dan angka besar memakai bobot 800 dan jarak rapat supaya tegas.
    - Kuning juga dipakai untuk tanda kuning, jadi tanda selalu disertai ikon dan teks.
    - Mobile: dock kaca di bawah. Layar lebar: bilah kaca di atas dan tata letak grid. */
 
 :root {
   --font: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
-  --font-judul: "Fraunces Variable", "Fraunces", Georgia, serif;
+  --font-judul: var(--font);
 
-  --paper: #f6f0e6;
-  --sheet: #fffdf9;
-  --ink: #1d1b16;
-  --steel: #5c564c;
-  --mist: #8a8478;
-  --rule: rgba(29, 27, 22, 0.09);
-  --rule-strong: rgba(29, 27, 22, 0.16);
+  --paper: #f3f1ea;
+  --sheet: #ffffff;
+  --ink: #16211b;
+  --steel: #59625c;
+  --mist: #8a918c;
+  --rule: rgba(22, 33, 27, 0.08);
+  --rule-strong: rgba(22, 33, 27, 0.15);
 
-  --tool: #1c6b41;
-  --tool-strong: #145232;
-  --tool-soft: rgba(28, 107, 65, 0.11);
+  --tool: #1e4d36;
+  --tool-strong: #153a28;
+  --tool-soft: rgba(30, 77, 54, 0.09);
   --on-tool: #ffffff;
   --saffron: #f4b740;
+  --mint: #d3ebcd;
+  --hutan: #1e4d36;
+  --hutan-tua: #133223;
 
-  --ok: #1c6b41;
-  --ok-soft: rgba(28, 107, 65, 0.11);
+  --ok: #1e6b44;
+  --ok-soft: rgba(30, 107, 68, 0.1);
   --danger: #b3261e;
   --danger-soft: rgba(179, 38, 30, 0.08);
   --warn-bg: #fff0c2;
@@ -37,23 +41,18 @@
   --grey-bg: rgba(29, 27, 22, 0.06);
   --grey-ink: #45413a;
 
-  --glass: rgba(255, 255, 255, 0.6);
-  --glass-strong: rgba(255, 255, 255, 0.76);
-  --glass-pop: rgba(255, 253, 249, 0.86);
-  --glass-line: rgba(255, 255, 255, 0.85);
+  --glass: #ffffff;
+  --glass-strong: #ffffff;
+  --glass-pop: #ffffff;
+  --glass-line: rgba(22, 33, 27, 0.06);
   --glass-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    0 10px 30px -12px rgba(60, 40, 10, 0.22),
-    0 2px 6px rgba(60, 40, 10, 0.05);
-  --kilau: rgba(255, 255, 255, 0.6);
-  --field: rgba(255, 255, 255, 0.72);
+    0 1px 2px rgba(22, 33, 27, 0.04),
+    0 10px 28px -18px rgba(22, 33, 27, 0.22);
+  --kilau: transparent;
+  --field: #f6f5f0;
 
-  --bubble: #dcf6c8;
+  --bubble: #e1f2d9;
   --bubble-ink: #17240f;
-
-  --gumpal-1: #3fae7a;
-  --gumpal-2: #f4b740;
-  --gumpal-3: #ee7d5c;
 
   --r-lg: 22px;
   --r: 16px;
@@ -71,11 +70,14 @@
   --mist: #948d80;
   --rule: rgba(255, 255, 255, 0.09);
   --rule-strong: rgba(255, 255, 255, 0.16);
-  --tool: #62d29b;
-  --tool-strong: #7fe0b0;
-  --tool-soft: rgba(98, 210, 155, 0.15);
-  --on-tool: #062414;
-  --ok: #62d29b;
+  --tool: #8fd3a5;
+  --tool-strong: #a9e2bb;
+  --tool-soft: rgba(143, 211, 165, 0.14);
+  --on-tool: #0d2418;
+  --mint: #2a4a36;
+  --hutan: #1f4a34;
+  --hutan-tua: #14301f;
+  --ok: #8fd3a5;
   --ok-soft: rgba(98, 210, 155, 0.15);
   --danger: #ff8a80;
   --danger-soft: rgba(255, 138, 128, 0.12);
@@ -88,20 +90,15 @@
   --violet-ink: #d8c8ff;
   --grey-bg: rgba(255, 255, 255, 0.08);
   --grey-ink: #d6d1c6;
-  --glass: rgba(32, 36, 30, 0.6);
-  --glass-strong: rgba(36, 40, 34, 0.78);
-  --glass-pop: rgba(38, 43, 36, 0.92);
-  --glass-line: rgba(255, 255, 255, 0.1);
-  --glass-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 12px 32px -14px rgba(0, 0, 0, 0.7);
-  --kilau: rgba(255, 255, 255, 0.09);
-  --field: rgba(255, 255, 255, 0.06);
+  --glass: #1b201c;
+  --glass-strong: #1f2520;
+  --glass-pop: #222823;
+  --glass-line: rgba(255, 255, 255, 0.07);
+  --glass-shadow: 0 10px 28px -18px rgba(0, 0, 0, 0.8);
+  --kilau: transparent;
+  --field: rgba(255, 255, 255, 0.05);
   --bubble: #1f3a26;
   --bubble-ink: #e6f4dc;
-  --gumpal-1: #1f7a52;
-  --gumpal-2: #8a5a12;
-  --gumpal-3: #7a3322;
   color-scheme: dark;
 }
 
@@ -129,42 +126,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
-body::before,
-body::after {
-  content: "";
-  position: fixed;
-  z-index: -1;
-  pointer-events: none;
-  border-radius: 50%;
-  filter: blur(70px);
-  will-change: transform;
-}
-body::before {
-  width: 75vmax;
-  height: 75vmax;
-  top: -32vmax;
-  left: -26vmax;
-  background: var(--gumpal-1);
-  opacity: 0.5;
-  box-shadow: 95vmax 55vmax 0 -10vmax var(--gumpal-3);
-  animation: melayang 28s ease-in-out infinite alternate;
-}
-body::after {
-  width: 55vmax;
-  height: 55vmax;
-  top: 22vh;
-  right: -26vmax;
-  background: var(--gumpal-2);
-  opacity: 0.45;
-  animation: melayang 34s ease-in-out infinite alternate-reverse;
-}
-@keyframes melayang {
-  to {
-    transform: translate(6vmax, 5vmax) scale(1.1);
-  }
-}
 ::selection {
-  background: rgba(28, 107, 65, 0.18);
+  background: rgba(30, 77, 54, 0.18);
 }
 h1,
 h2,
@@ -269,8 +232,6 @@ button:not(:disabled) {
   border: 1px solid var(--glass-line);
   border-radius: var(--r-lg);
   box-shadow: var(--glass-shadow);
-  -webkit-backdrop-filter: blur(22px) saturate(170%);
-  backdrop-filter: blur(22px) saturate(170%);
   transition:
     transform 0.25s var(--ease),
     box-shadow 0.25s ease;
@@ -357,18 +318,13 @@ a.kaca:active {
   gap: 0.75rem;
   padding: 0 0.6rem 0 0.75rem;
   border-radius: var(--r);
-  background: rgba(255, 253, 249, 0.66);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.85),
-    0 0 0 0.5px rgba(29, 29, 31, 0.1),
-    0 8px 28px -10px rgba(29, 29, 31, 0.2);
-  -webkit-backdrop-filter: blur(30px) saturate(190%);
-  backdrop-filter: blur(30px) saturate(190%);
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--glass-shadow);
 }
 :root[data-theme="dark"] .bilah-atas,
 :root[data-theme="dark"] .nav-bawah {
-  background: rgba(30, 34, 28, 0.7);
+  background: var(--glass-strong);
   border-color: rgba(255, 255, 255, 0.08);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
@@ -385,7 +341,7 @@ a.kaca:active {
   border-radius: 8px;
 }
 .logo-login {
-  filter: drop-shadow(0 14px 24px rgba(28, 107, 65, 0.3));
+  filter: drop-shadow(0 14px 24px rgba(30, 77, 54, 0.3));
 }
 .merek {
   display: flex;
@@ -488,14 +444,9 @@ a.kaca:active {
   width: min(25rem, calc(100% - 1.5rem));
   padding: 0.35rem;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.62);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 0 0 0.5px rgba(29, 29, 31, 0.1),
-    0 18px 40px -16px rgba(29, 29, 31, 0.35);
-  -webkit-backdrop-filter: blur(30px) saturate(190%);
-  backdrop-filter: blur(30px) saturate(190%);
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  box-shadow: 0 18px 40px -18px rgba(22, 33, 27, 0.35);
 }
 .nav-item {
   position: relative;
@@ -622,13 +573,8 @@ a.kaca:active {
   font-weight: 550;
   white-space: nowrap;
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.6);
-  box-shadow:
-    inset 0 0 0 1px rgba(29, 29, 31, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 1px 2px rgba(29, 29, 31, 0.06);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
+  background: var(--sheet);
+  box-shadow: inset 0 0 0 1px var(--rule-strong);
   transition:
     background-color 0.2s,
     box-shadow 0.2s,
@@ -637,7 +583,7 @@ a.kaca:active {
   text-decoration: none;
 }
 .tombol:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--field);
 }
 .tombol:active:not(:disabled) {
   transform: scale(0.98);
@@ -657,10 +603,7 @@ a.kaca:active {
 :root[data-theme="dark"] .tombol-utama {
   background: var(--tool);
   color: var(--on-tool);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 1px 2px rgba(28, 107, 65, 0.3),
-    0 6px 16px -6px rgba(28, 107, 65, 0.55);
+  box-shadow: 0 8px 18px -10px rgba(19, 50, 35, 0.6);
 }
 .tombol-utama:hover:not(:disabled),
 :root[data-theme="dark"] .tombol-utama:hover:not(:disabled) {
@@ -772,8 +715,6 @@ textarea {
     inset 0 0 0 1px rgba(29, 29, 31, 0.09),
     inset 0 1px 2px rgba(29, 29, 31, 0.04);
   font-size: 16px; /* 16px supaya iOS tidak memperbesar layar saat mengetik */
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
   transition:
     box-shadow 0.2s,
     background-color 0.2s;
@@ -790,7 +731,7 @@ textarea:focus-visible {
   background: var(--glass-pop);
   box-shadow:
     inset 0 0 0 1px color-mix(in srgb, var(--tool) 70%, transparent),
-    0 0 0 4px rgba(28, 107, 65, 0.15);
+    0 0 0 4px rgba(30, 77, 54, 0.15);
 }
 input::placeholder,
 textarea::placeholder {
@@ -964,20 +905,18 @@ textarea {
   padding: 0 0.95rem;
   border: 0;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.55);
-  box-shadow: inset 0 0 0 1px rgba(29, 29, 31, 0.07);
+  background: var(--sheet);
+  box-shadow: inset 0 0 0 1px var(--rule);
   color: var(--steel);
   font-size: 14px;
   font-weight: 550;
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
 }
 :root[data-theme="dark"] .saring button {
   background: rgba(255, 255, 255, 0.07);
 }
 .saring button.aktif {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--tool);
+  color: var(--on-tool);
   box-shadow: none;
 }
 .saring-jumlah {
@@ -1107,16 +1046,11 @@ textarea {
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  padding: 0.9rem 0 0.25rem;
-}
-.beranda-kepala p {
-  color: var(--steel);
-  font-size: 15px;
+  padding: 0.6rem 0 0;
 }
 .beranda-kepala h1 {
-  font-size: clamp(1.9rem, 6vw, 2.6rem);
-  font-weight: 700;
-  letter-spacing: -0.035em;
+  margin-top: 0.15rem;
+  font-size: clamp(1.6rem, 5.5vw, 2.2rem);
 }
 .kisi-beranda {
   display: grid;
@@ -1157,73 +1091,297 @@ textarea {
   color: var(--warn-ink);
 }
 
+/* Kartu utama Beranda: hijau hutan seperti kartu saldo, dua tombol di dalamnya. */
 .ringkasan {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1.25rem;
+  gap: 0.35rem;
+  padding: 1.35rem;
+  border-radius: 24px;
+  color: #fff;
+  background:
+    radial-gradient(80% 110% at 100% 0%, rgba(143, 191, 152, 0.3), transparent 60%),
+    radial-gradient(60% 80% at 0% 100%, rgba(244, 183, 64, 0.12), transparent 70%),
+    linear-gradient(150deg, var(--hutan), var(--hutan-tua));
+  box-shadow: 0 22px 40px -22px rgba(19, 50, 35, 0.75);
+}
+.ringkasan::before {
+  content: "";
+  position: absolute;
+  right: -3.5rem;
+  bottom: -4.5rem;
+  width: 13rem;
+  height: 13rem;
+  border-radius: 50%;
+  border: 1.5rem solid rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+}
+.ringkasan-atas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.ringkasan .label-huruf-besar {
+  color: rgba(255, 255, 255, 0.72);
 }
 .angka-utama {
   display: block;
-  margin-top: 0.15rem;
-  font-size: clamp(2.1rem, 8vw, 2.9rem);
-  font-weight: 650;
   line-height: 1.05;
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
 }
-.ringkasan-angka {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 0;
-  padding-top: 0.9rem;
-  border-top: 1px solid var(--rule);
+.ringkasan .angka-utama {
+  position: relative;
+  color: #fff;
+  margin-top: 0.2rem;
 }
-.ringkasan-angka > div {
+.ringkasan-meta {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+}
+.ringkasan-tombol {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.9rem;
+}
+.ringkasan-tombol .tombol {
+  flex: 1 1 9.5rem;
   min-width: 0;
+  padding: 0 0.75rem;
 }
-.ringkasan-angka > div + div {
-  padding-left: 0.9rem;
-  border-left: 1px solid var(--rule);
+.chip-emas {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: var(--saffron);
+  color: #2a1d00;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
 }
-.ringkasan-angka dt {
-  font-size: 13px;
+.chip-tenang {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.tombol-emas,
+:root[data-theme="dark"] .tombol-emas {
+  background: var(--saffron);
+  color: #2a1d00;
+  font-weight: 700;
+  box-shadow: 0 8px 18px -10px rgba(120, 80, 0, 0.6);
+}
+.tombol-emas:hover:not(:disabled),
+:root[data-theme="dark"] .tombol-emas:hover:not(:disabled) {
+  background: #f7c55f;
+}
+.tombol-garis-terang,
+:root[data-theme="dark"] .tombol-garis-terang {
+  background: transparent;
+  color: #fff;
+  font-weight: 650;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.4);
+}
+.tombol-garis-terang:hover:not(:disabled),
+:root[data-theme="dark"] .tombol-garis-terang:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+}
+.label-huruf-besar {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--steel);
 }
-.ringkasan-angka dd {
-  margin: 0.1rem 0 0;
-  font-size: 1.3rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
+
+/* Aksi cepat: empat ubin, Cek menyala emas bila ada yang perlu dicek. */
+.aksi-cepat {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.aksi-cepat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--ink);
+  font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
+}
+.aksi-cepat-ikon {
+  position: relative;
+  width: 100%;
+  max-width: 4.25rem;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 20px;
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--glass-shadow);
+  color: var(--tool);
+  transition: transform 0.2s var(--ease);
+}
+.aksi-cepat-item:hover .aksi-cepat-ikon {
+  transform: translateY(-2px);
+}
+.aksi-cepat-item:active .aksi-cepat-ikon {
+  transform: scale(0.95);
+}
+.aksi-cepat-item.sorot .aksi-cepat-ikon {
+  background: var(--saffron);
+  border-color: transparent;
+  color: #2a1d00;
+  box-shadow: 0 10px 20px -10px rgba(120, 80, 0, 0.6);
+}
+.aksi-cepat-jumlah {
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.3rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--hutan);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px var(--paper);
+}
+.aksi-cepat-label {
+  font-size: 13px;
+}
+
+/* Kartu produksi: batang porsi per menu, satu warna sage, menu terbanyak emas dan diberi angka. */
+.kartu-produksi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.15rem;
+}
+.produksi-total {
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
-.ringkasan-angka .perlu dd {
-  color: #c25e00;
+.produksi-total .redup {
+  margin-left: 0.3rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0;
 }
-:root[data-theme="dark"] .ringkasan-angka .perlu dd {
-  color: #ffb547;
+.grafik-batang {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  height: 9.5rem;
 }
-.ringkasan-ajak {
+.grafik-batang li {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.3rem;
+}
+.grafik-batang-isi {
+  width: 100%;
+  max-width: 2.25rem;
+  border-radius: 8px 8px 4px 4px;
+  background: color-mix(in srgb, var(--tool) 28%, var(--sheet));
+}
+.grafik-batang .teratas .grafik-batang-isi {
+  background: var(--saffron);
+}
+.grafik-nilai {
+  font-size: 12px;
+  font-weight: 700;
+  min-height: 1em;
+  font-variant-numeric: tabular-nums;
+}
+.grafik-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.5px;
+  color: var(--steel);
+}
+.grafik-catatan {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--steel);
+  font-size: 13px;
+}
+.titik-emas {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--saffron);
+}
+
+/* Kartu belum bayar. */
+.kartu-bayar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.15rem;
+}
+.kartu-bayar h2 {
+  font-size: 1rem;
+}
+.kartu-bayar .redup {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.daftar-bayar {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.daftar-bayar a {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  flex-wrap: wrap;
-  padding: 0.7rem 0.85rem;
-  border-radius: 12px;
-  background: var(--warn-bg);
-  color: var(--warn-ink);
-  font-size: 14px;
-  font-weight: 400;
+  padding: 0.5rem 0;
+  color: var(--ink);
+  font-weight: 550;
 }
-.ringkasan-ajak > span:nth-child(2) {
-  flex: 1 1 14rem;
+.daftar-bayar li + li a {
+  border-top: 1px solid var(--rule);
 }
-.ringkasan-ajak-aksi {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  font-weight: 600;
+.daftar-bayar .avatar {
+  width: 2.1rem;
+  height: 2.1rem;
+  font-size: 12px;
+}
+.daftar-bayar-nama {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+}
+.daftar-bayar strong {
+  font-variant-numeric: tabular-nums;
 }
 .bagian-kepala {
   display: flex;
@@ -1261,7 +1419,7 @@ textarea {
   transition: background 0.15s;
 }
 .baris-terbaru:hover {
-  background: rgba(28, 107, 65, 0.05);
+  background: rgba(30, 77, 54, 0.05);
 }
 .terbaru-isi {
   display: flex;
@@ -1408,39 +1566,189 @@ textarea {
   padding: 0.85rem 1rem;
 }
 
-/* ---------- Login ---------- */
+/* ---------- Login ----------
+   Mobile: panel hijau tua di atas (merek, tagline, ilustrasi chat jadi rekap), kartu masuk menumpang di bawahnya.
+   Layar lebar: dua kolom, panel hijau di kiri dan kartu masuk di kanan. */
 .login {
   min-height: 100dvh;
-  max-width: 25rem;
-  margin: 0 auto;
-  padding: 2rem 1rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 1.5rem;
+}
+.login-hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.75rem 1.25rem 4.25rem;
+  color: #fff;
+  background:
+    radial-gradient(70% 55% at 85% 100%, rgba(143, 191, 152, 0.3), transparent 70%),
+    linear-gradient(165deg, var(--hutan), var(--hutan-tua));
+  border-radius: 0 0 32px 32px;
+}
+/* Pola titik halus supaya panel tidak polos. */
+.login-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1.4px);
+  background-size: 18px 18px;
+  mask-image: linear-gradient(180deg, #000, transparent 85%);
 }
 .login-merek {
-  text-align: center;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
+}
+.login-merek svg {
+  border-radius: 14px;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
 }
 .login .judul-merek {
-  font-size: 2.2rem;
+  font-size: 1.9rem;
+  color: #fff;
+}
+.login .teks-logo-p {
+  color: var(--saffron);
+}
+.login-tagline {
+  margin-top: 0.6rem;
+  font-weight: 800;
+  font-size: clamp(2rem, 8.5vw, 3.4rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+.login-tagline .sorot {
+  color: #d3ebcd;
 }
 .login-slogan {
-  color: var(--steel);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 15px;
-  max-width: 20rem;
+  max-width: 22rem;
+}
+
+/* Ilustrasi: dua gelembung chat miring, kartu rekap menimpa dari kanan. */
+.login-ilustrasi {
+  position: relative;
+  height: 9.5rem;
+  margin-top: 0.5rem;
+}
+.ilu-chat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  transform: rotate(-4deg);
+}
+.ilu-gelembung {
+  background: var(--bubble);
+  color: var(--bubble-ink);
+  font-size: 13px;
+  font-weight: 550;
+  padding: 0.45rem 0.75rem;
+  border-radius: 14px 14px 14px 4px;
+  box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.5);
+}
+:root[data-theme="dark"] .ilu-gelembung {
+  background: #dcf6c8;
+  color: #17240f;
+}
+.ilu-gelembung-2 {
+  margin-left: 1.5rem;
+}
+.ilu-rekap {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: min(13rem, 60%);
+  padding: 0.75rem 0.85rem;
+  border-radius: 16px;
+  background: #fffdf9;
+  color: #1d1b16;
+  box-shadow: 0 18px 36px -14px rgba(0, 0, 0, 0.55);
+  transform: rotate(3deg);
+  font-size: 13px;
+}
+.ilu-rekap-kepala {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+}
+.ilu-lencana {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 11px;
+  font-weight: 700;
+  color: #1e4d36;
+  background: #e1f2d9;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+}
+.ilu-baris {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  border-top: 1px dashed rgba(29, 27, 22, 0.15);
+}
+.ilu-baris strong {
+  color: #1e4d36;
+}
+
+.login-poin {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.login-poin li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.login-panel {
+  position: relative;
+  width: 100%;
+  max-width: 26rem;
+  margin: -2.75rem auto 0;
+  padding: 0 1rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 .login-kartu {
-  padding: 1.4rem;
+  padding: 1.5rem 1.4rem;
+  background: var(--glass-pop);
 }
 .login-kartu form {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 0.95rem;
+}
+.login-sapa h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.login-sapa p {
+  margin-top: 0.2rem;
+  color: var(--steel);
+  font-size: 14px;
 }
 .login-catatan {
   display: flex;
@@ -1449,6 +1757,42 @@ textarea {
   gap: 0.4rem;
   color: var(--steel);
   font-size: 13px;
+  text-align: center;
+}
+
+@media (min-width: 900px) {
+  .login {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 2.5rem;
+    padding: 1.25rem;
+  }
+  .login-hero {
+    flex: 1.1;
+    justify-content: center;
+    padding: 3rem clamp(2rem, 5vw, 4.5rem);
+    border-radius: 32px;
+  }
+  .login-merek {
+    position: absolute;
+    top: 2rem;
+    left: clamp(2rem, 5vw, 4.5rem);
+  }
+  .login-ilustrasi {
+    height: 11rem;
+    max-width: 30rem;
+    margin-top: 1.5rem;
+  }
+  .ilu-gelembung {
+    font-size: 14px;
+  }
+  .login-panel {
+    flex: 1;
+    max-width: 26rem;
+    margin: 0 auto;
+    padding: 0;
+    justify-content: center;
+  }
 }
 
 /* ---------- Impor ---------- */
@@ -1580,7 +1924,11 @@ textarea {
 /* ---------- Kartu pesanan ---------- */
 .daftar-pesanan {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.9rem;
+}
+.daftar-pesanan > * {
+  min-width: 0;
 }
 .kartu-pesanan.bertanda {
   box-shadow:
@@ -1592,8 +1940,9 @@ textarea {
 }
 .pesanan-kepala {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem 0.75rem;
 }
 .avatar {
   flex: none;
@@ -1608,17 +1957,18 @@ textarea {
   background: var(--tool-soft);
 }
 .pesanan-nama {
-  flex: 1;
+  flex: 1 1 6.5rem;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
 }
-.pesanan-nama h3 {
+.pesanan-nama h2 {
   font-size: 16px;
   overflow-wrap: anywhere;
 }
 .pesanan-total {
+  margin-left: auto;
   text-align: right;
   display: flex;
   flex-direction: column;
@@ -1776,15 +2126,20 @@ textarea {
   color: inherit;
 }
 .pesanan-aksi {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
 }
 .pesanan-aksi .tombol {
+  flex: 1 1 5.25rem;
+  min-width: 0;
   padding-inline: 0.6rem;
 }
+.pesanan-aksi .tombol:first-child {
+  flex-grow: 1.2;
+}
 .pesanan-aksi .tombol-penuh {
-  grid-column: 1 / -1;
+  flex-basis: 100%;
 }
 .kartu-aksi-massal {
   flex-direction: row;
@@ -2021,13 +2376,9 @@ textarea {
   gap: 0.4rem;
   padding: 1.25rem;
   border-radius: var(--r-lg);
-  background:
-    radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--saffron) 28%, transparent), transparent 55%),
-    var(--glass);
+  background: var(--glass);
   border: 1px solid var(--glass-line);
   box-shadow: var(--glass-shadow);
-  -webkit-backdrop-filter: blur(22px) saturate(170%);
-  backdrop-filter: blur(22px) saturate(170%);
 }
 .kartu-hero .baris-tombol {
   margin-top: 0.4rem;
@@ -2195,10 +2546,15 @@ textarea {
   text-decoration: line-through;
   opacity: 0.5;
 }
+/* Kartu sebaris sama tinggi, supaya tidak ada ruang kosong janggal di bawah kartu yang isinya pendek. */
 .kisi-rekap {
   display: grid;
   gap: 1rem;
-  align-items: start;
+  align-items: stretch;
+}
+.kisi-rekap > .kartu > .kosong {
+  flex: 1;
+  justify-content: center;
 }
 
 /* ---------- Katalog ---------- */
@@ -2310,8 +2666,6 @@ textarea {
   border: 1px solid var(--glass-line);
   border-bottom-left-radius: 6px;
   box-shadow: var(--glass-shadow);
-  -webkit-backdrop-filter: blur(24px);
-  backdrop-filter: blur(24px);
 }
 .agen .obrolan-gelembung.galat {
   flex-direction: row;
@@ -2807,8 +3161,6 @@ textarea {
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 0 0 0.5px rgba(29, 29, 31, 0.12),
     0 24px 60px -20px rgba(29, 29, 31, 0.4);
-  -webkit-backdrop-filter: blur(36px) saturate(200%);
-  backdrop-filter: blur(36px) saturate(200%);
   animation: pop 0.32s var(--ease);
 }
 .dialog-kepala {
@@ -2871,8 +3223,6 @@ textarea {
   box-shadow:
     0 0 0 0.5px rgba(29, 29, 31, 0.12),
     0 16px 40px -16px rgba(29, 29, 31, 0.4);
-  -webkit-backdrop-filter: blur(30px) saturate(190%);
-  backdrop-filter: blur(30px) saturate(190%);
   animation: pop 0.32s var(--ease);
 }
 .toast > span {
@@ -2966,7 +3316,10 @@ textarea {
   }
   .daftar-pesanan {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
+    align-items: stretch;
+  }
+  .daftar-pesanan .pesanan-aksi {
+    margin-top: auto;
   }
   .kisi-rekap {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3011,7 +3364,6 @@ textarea {
   }
 }
 @media print {
-  body::before,
   .bilah-atas-wrap,
   .nav-bawah,
   .toasts,
@@ -3036,28 +3388,26 @@ h1,
 .judul-merek,
 .teks-logo {
   font-family: var(--font-judul);
-  font-optical-sizing: auto;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.035em;
 }
 h1 {
-  font-weight: 650;
+  font-weight: 800;
 }
 .angka-utama {
-  font-weight: 600;
+  font-weight: 800;
   font-size: clamp(2.3rem, 9vw, 3.2rem);
   color: var(--tool);
+  font-variant-numeric: tabular-nums;
 }
 .total-besar {
-  font-weight: 600;
+  font-weight: 800;
 }
 .teks-logo {
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.045em;
 }
 .teks-logo-p {
   color: #e39b17;
-}
-.beranda-kepala h1 {
-  font-size: clamp(2rem, 7vw, 2.8rem);
 }
 .cara-no,
 .langkah-no {
@@ -3066,13 +3416,8 @@ h1 {
   font-family: var(--font-judul);
 }
 .kartu-tanya-ikon {
-  background: linear-gradient(140deg, var(--tool), color-mix(in srgb, var(--tool) 55%, var(--saffron)));
+  background: var(--hutan);
   color: #fff;
-}
-.ringkasan {
-  background:
-    radial-gradient(110% 130% at 100% 0%, color-mix(in srgb, var(--saffron) 22%, transparent), transparent 55%),
-    var(--glass);
 }
 .nav-item.aktif .nav-ikon {
   background: var(--tool);
@@ -3087,8 +3432,8 @@ h1 {
   color: #2a1d00;
 }
 .avatar {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--gumpal-1) 30%, #fff), color-mix(in srgb, var(--gumpal-2) 35%, #fff));
-  color: var(--ink);
+  background: var(--mint);
+  color: var(--hutan);
 }
 :root[data-theme="dark"] .avatar {
   background: var(--tool-soft);
@@ -3098,13 +3443,7 @@ h1 {
   background: var(--tool);
 }
 .batang span {
-  background: linear-gradient(90deg, var(--tool), color-mix(in srgb, var(--tool) 55%, var(--saffron)));
-}
-@media (prefers-reduced-motion: reduce) {
-  body::before,
-  body::after {
-    animation: none;
-  }
+  background: var(--tool);
 }
 
 /* ---------- Daftar akun ---------- */
@@ -3128,4 +3467,243 @@ h1 {
   font-weight: 600;
   text-decoration: underline;
   cursor: pointer;
+}
+
+/* ---------- Perbaikan mode gelap ---------- */
+:root[data-theme="dark"] .saring button.aktif {
+  background: var(--tool);
+  color: var(--on-tool);
+}
+:root[data-theme="dark"] .saring button.aktif .saring-jumlah {
+  background: var(--saffron);
+  color: #2a1d00;
+}
+
+/* ---------- Kartu menu: judul h2 seukuran judul kartu ---------- */
+.menu-kepala h2 {
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+/* ---------- Ukuran huruf (Pengaturan) ----------
+   Gaya memakai px, jadi seluruh antarmuka diperbesar dengan zoom supaya tulisan, ikon, dan target sentuh ikut besar. */
+:root[data-ukuran="besar"] body {
+  zoom: 1.12;
+}
+:root[data-ukuran="sangat_besar"] body {
+  zoom: 1.25;
+}
+.contoh-huruf {
+  font-weight: 800;
+  line-height: 1.6;
+}
+.contoh-huruf-0 {
+  font-size: 16px;
+}
+.contoh-huruf-1 {
+  font-size: 20px;
+}
+.contoh-huruf-2 {
+  font-size: 24px;
+}
+
+/* Fokus hasil pindah layar jatuh ke judul, bukan kontrol: tidak perlu bingkai. */
+h1[tabindex="-1"]:focus,
+main[tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* ---------- Kontras tinggi ---------- */
+@media (prefers-contrast: more) {
+  :root {
+    --steel: #2f3632;
+    --mist: #4a524d;
+    --rule: rgba(22, 33, 27, 0.3);
+    --rule-strong: rgba(22, 33, 27, 0.55);
+    --glass-line: rgba(22, 33, 27, 0.4);
+  }
+  :root[data-theme="dark"] {
+    --steel: #e6e1d6;
+    --mist: #cfc9bd;
+    --rule: rgba(255, 255, 255, 0.35);
+    --rule-strong: rgba(255, 255, 255, 0.6);
+    --glass-line: rgba(255, 255, 255, 0.45);
+  }
+  :focus-visible {
+    outline-width: 3px;
+  }
+}
+/* Mode warna paksa (Windows High Contrast): kartu dan tombol tetap punya batas, status tetap terbaca. */
+@media (forced-colors: active) {
+  .kaca,
+  .tombol,
+  .ringkasan,
+  .aksi-cepat-ikon,
+  .lencana,
+  .chip-tanda,
+  .chip-emas,
+  .nav-bawah,
+  .bilah-atas {
+    border: 1px solid CanvasText;
+  }
+  .nav-item.aktif,
+  .nav-atas a.aktif,
+  .saring button.aktif,
+  .pilihan.aktif {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+  .grafik-batang-isi {
+    background: CanvasText;
+    forced-color-adjust: none;
+  }
+  .grafik-batang .teratas .grafik-batang-isi {
+    background: Highlight;
+  }
+}
+
+/* ---------- Kartu omzet di Rekap: senada dengan kartu utama Beranda ---------- */
+.kartu-hero {
+  color: #fff;
+  border: 0;
+  background:
+    radial-gradient(80% 110% at 100% 0%, rgba(143, 191, 152, 0.3), transparent 60%),
+    linear-gradient(150deg, var(--hutan), var(--hutan-tua));
+  box-shadow: 0 22px 40px -22px rgba(19, 50, 35, 0.75);
+}
+.kartu-hero .angka-utama {
+  color: #fff;
+}
+.kartu-hero .label-kecil,
+.kartu-hero .redup {
+  color: rgba(255, 255, 255, 0.75);
+}
+.pilihan-grup > p {
+  margin-top: 0.6rem;
+}
+
+/* ---------- Siapkan toko (akun baru) ---------- */
+.siapkan-toko {
+  gap: 0.9rem;
+}
+.siapkan-kepala {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.siapkan-kepala h2 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.siapkan-batang {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--tool-soft);
+  overflow: hidden;
+}
+.siapkan-batang span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tool);
+  transition: width 0.4s var(--ease);
+}
+.siapkan-daftar {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.siapkan-langkah {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  border-radius: var(--r);
+  border: 1px solid var(--rule);
+  background: var(--sheet);
+}
+.siapkan-langkah.berikutnya {
+  border-color: color-mix(in srgb, var(--tool) 45%, transparent);
+  box-shadow: 0 0 0 3px var(--tool-soft);
+}
+.siapkan-langkah.terkunci {
+  background: var(--field);
+}
+.siapkan-no {
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-weight: 800;
+  background: var(--tool-soft);
+  color: var(--tool);
+}
+.siapkan-langkah.selesai .siapkan-no {
+  background: var(--tool);
+  color: var(--on-tool);
+}
+.siapkan-langkah.terkunci .siapkan-no {
+  background: var(--grey-bg);
+  color: var(--steel);
+}
+.siapkan-teks {
+  flex: 1 1 12rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.siapkan-langkah.selesai .siapkan-teks strong {
+  color: var(--steel);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+.siapkan-langkah > .tombol {
+  flex: none;
+}
+.siapkan-kunci {
+  flex: none;
+  color: var(--steel);
+  padding: 0 0.4rem;
+}
+
+/* ---------- Nama toko ---------- */
+.nama-toko {
+  color: var(--tool);
+}
+.form-toko {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.form-toko label {
+  font-size: 14px;
+  font-weight: 600;
+}
+.form-toko-baris {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.form-toko-baris input {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+.form-toko-baris .tombol {
+  flex: none;
+  height: auto;
+  min-height: 2.6rem;
+}
+.ajak-toko {
+  gap: 0.75rem;
+  border-color: color-mix(in srgb, var(--tool) 35%, transparent);
 }
