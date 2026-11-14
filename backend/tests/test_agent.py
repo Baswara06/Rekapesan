@@ -74,6 +74,16 @@ def test_rekap_produksi_per_jam(data):
     assert "galat" in alat_agen.rekap_produksi(data, "b-1", "kapan-kapan")
 
 
+def test_menunggu_persetujuan_dihitung_menurut_jam_yang_diminta(data):
+    """Dulu angka seluruh batch dipakai juga untuk satu jam, sehingga agen menyebut jumlah yang salah."""
+    budi = data.scalar(select(Order).join(Customer).where(Customer.nama_tampil == "Mas Budi"))
+    budi.jam_kirim = "13:00"
+    data.commit()
+    assert alat_agen.rekap_produksi(data, "b-1")["pesanan_menunggu_persetujuan_tidak_dihitung"] == 1
+    assert alat_agen.rekap_produksi(data, "b-1", "12:00")["pesanan_menunggu_persetujuan_tidak_dihitung"] == 0
+    assert alat_agen.rekap_produksi(data, "b-1", "13:00")["pesanan_menunggu_persetujuan_tidak_dihitung"] == 1
+
+
 def test_daftar_belum_bayar(data):
     r = alat_agen.daftar_belum_bayar(data, "b-1")
     assert r["jumlah"] == 2 and r["total_tagihan"] == 54000 + 23000
