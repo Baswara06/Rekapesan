@@ -94,18 +94,18 @@ export default function Pengaturan() {
             <Icon nama="centang" ukuran={18} /> Chat yang menyuruh mengubah harga diabaikan, karena isi chat adalah data, bukan perintah.
           </li>
           <li>
-            <Icon nama="centang" ukuran={18} /> Menghapus PO ikut menghapus chat mentahnya.
+            <Icon nama="centang" ukuran={18} /> Menghapus data ikut menghapus chat mentahnya.
           </li>
         </ul>
       </Kaca>
 
       <Kaca className="kartu">
         <h2 className="judul-kartu">
-          <Icon nama="hapus" /> Hapus data PO
+          <Icon nama="hapus" /> Hapus data per hari
         </h2>
-        <p className="redup">Menghapus PO beserta chat mentah, data pembeli, dan pesanannya. Tidak bisa dibatalkan.</p>
+        <p className="redup">Menghapus satu hari beserta chat mentah, data pembeli, dan pesanannya. Tidak bisa dibatalkan.</p>
         {batches.length === 0 ? (
-          <p className="redup miring">Belum ada PO.</p>
+          <p className="redup miring">Belum ada data.</p>
         ) : (
           <ul className="daftar-baris">
             {batches.map((b) => (

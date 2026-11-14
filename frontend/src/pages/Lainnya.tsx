@@ -3,7 +3,7 @@ import { Kepala } from "../components/ui";
 
 const MENU: { href: string; ikon: NamaIkon; judul: string; isi: string }[] = [
   { href: "#/katalog", ikon: "katalog", judul: "Katalog menu", isi: "Menu, harga, stok, nama panggilan, dan resep." },
-  { href: "#/pengaturan", ikon: "pengaturan", judul: "Pengaturan", isi: "Tema, privasi AI, hapus data PO, keluar." },
+  { href: "#/pengaturan", ikon: "pengaturan", judul: "Pengaturan", isi: "Tema, privasi AI, hapus data, keluar." },
 ];
 
 export default function Lainnya() {

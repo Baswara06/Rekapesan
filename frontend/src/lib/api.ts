@@ -55,6 +55,78 @@ export interface ImportResult {
   perlu_cek: number;
 }
 
+/** Isi chat untuk impor harian: teks tempel atau berkas ekspor (.txt/.zip). */
+export type IsiChat = { teks: string } | { berkas: File };
+
+export interface MenuTerdeteksi {
+  nama: string;
+  harga: number | null;
+  sudah_ada: boolean;
+  product_id: string | null;
+}
+
+/** Hasil POST /impor/pratinjau: dibaca kode, tanpa AI, belum menyimpan apa pun. */
+export interface PratinjauImpor {
+  penjual: string | null;
+  tanggal_awal: string | null;
+  tanggal_akhir: string | null;
+  jumlah_pesan: number;
+  hari: { tanggal: string; jumlah_pesan: number }[];
+  menu: MenuTerdeteksi[];
+}
+
+export interface HasilImporHari extends ImportResult {
+  tanggal: string;
+  batch_id: string;
+  nama: string;
+}
+
+export interface HasilImporHarian {
+  hari: HasilImporHari[];
+  total: ImportResult;
+}
+
+export type StatusPapan = "perlu_cek" | "diproses" | "selesai" | "batal";
+export type StatusBayar = "lunas" | "belum";
+
+export interface SaranPesanan {
+  jenis: "sudah_bayar" | "sudah_terima";
+  teks: string;
+  kutipan: string | null;
+}
+
+export interface PesananPapan {
+  id: string;
+  nama: string;
+  status: StatusPesanan;
+  status_papan: StatusPapan;
+  bayar: StatusBayar;
+  total: number;
+  jam_kirim: string | null;
+  alamat: string | null;
+  items: { nama: string; qty: number | null }[];
+  tanda: KodeTanda[];
+  saran: SaranPesanan[];
+}
+
+export interface Ringkasan {
+  keseluruhan: {
+    perlu_cek: number;
+    diproses: number;
+    selesai: number;
+    batal: number;
+    omzet: number;
+    belum_bayar: number;
+    jumlah_belum_bayar: number;
+  };
+  hari: {
+    tanggal: string;
+    batch_id: string;
+    nama: string;
+    jam: { jam: string | null; pesanan: PesananPapan[] }[];
+  }[];
+}
+
 export interface OrderItem {
   id?: string;
   product_id: string | null;
@@ -206,6 +278,16 @@ async function minta<T>(path: string, init: RequestInit = {}): Promise<T> {
 
 const json = (body: unknown) => JSON.stringify(body);
 
+/** Body impor harian: multipart untuk berkas, JSON untuk teks tempel (sama dengan impor per batch). */
+function bodyChat(isi: IsiChat): BodyInit {
+  if ("berkas" in isi) {
+    const form = new FormData();
+    form.append("file", isi.berkas, isi.berkas.name || "chat.txt");
+    return form;
+  }
+  return json({ text: isi.teks });
+}
+
 export const api = {
   kesehatan: () => minta<{ status: string }>("/health"),
   login: (username: string, password: string) =>
@@ -256,7 +338,12 @@ export const api = {
     return minta<ProofSuggestion>(`/orders/${orderId}/payment-proof`, { method: "POST", body: form });
   },
   konfirmasiBayar: (orderId: string) =>
-    minta<{ order_id: string; status: "dibayar" }>(`/orders/${orderId}/payment-confirm`, { method: "POST" }),
+    // Untuk pesanan yang sudah dikirim status tetap "dikirim", hanya pembayarannya yang jadi lunas.
+    minta<{ order_id: string; status: StatusPesanan }>(`/orders/${orderId}/payment-confirm`, { method: "POST" }),
+
+  pratinjauImpor: (isi: IsiChat) => minta<PratinjauImpor>("/impor/pratinjau", { method: "POST", body: bodyChat(isi) }),
+  imporHarian: (isi: IsiChat) => minta<HasilImporHarian>("/impor", { method: "POST", body: bodyChat(isi) }),
+  ringkasan: () => minta<Ringkasan>("/ringkasan"),
 
   tanya: (batchId: string, pertanyaan: string, riwayat: RiwayatTanya) =>
     minta<AgentAnswer>("/agent/ask", {
