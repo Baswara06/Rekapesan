@@ -13,7 +13,7 @@ Dibuat untuk **LOGICODIX 2026** (HIMTI UNESA).
 | **Subtema** | Local MSME and Creative Economy |
 | **Demo (deploy)** | https://rekapesan.my.id (API: https://api.rekapesan.my.id) |
 | **Video demo** | _isi tautan YouTube_ |
-| **Akun demo** | username `demo` / password: _isi_ (berisi katalog dan PO contoh). Bisa juga **Daftar** akun baru di layar Masuk |
+| **Akun demo** | nama pengguna `demo` / kata sandi `demo` (berisi katalog dan PO contoh). Bisa juga **Daftar** akun baru di layar Masuk |
 
 ---
 
