@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Icon } from "../components/Icon";
+import { MenuBelumDikenal } from "../components/MenuBelumDikenal";
 import { Galat, Kaca, Kepala, Tombol } from "../components/ui";
 import { api, ApiError, type HasilImporHarian, type IsiChat, type PratinjauImpor } from "../lib/api";
 import { rupiah, tanggalPanjang, tanggalPendek } from "../lib/format";
@@ -338,6 +339,8 @@ export default function MasukkanChat() {
                   </li>
                 ))}
               </ul>
+              {/* Menu yang dipesan pembeli tapi tidak ada di katalog: baru diketahui setelah AI membaca pesanan. */}
+              <MenuBelumDikenal tertanam />
               <Tombol varian="utama" besar penuh ikon="beranda" onClick={() => pergi("/")}>
                 Lihat papan pesanan
               </Tombol>

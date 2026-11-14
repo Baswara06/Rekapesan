@@ -207,6 +207,15 @@ export interface AgentAnswer {
   percakapan_id?: string;
 }
 
+/** Item pesanan yang tidak cocok dengan katalog, dikelompokkan kode per nama. */
+export interface MenuBelumDikenal {
+  kunci: string;
+  nama: string;
+  jumlah_pesanan: number;
+  total_porsi: number;
+  contoh: string;
+}
+
 export interface RingkasPercakapan {
   id: string;
   judul: string;
@@ -373,6 +382,12 @@ export const api = {
         pertanyaan,
         riwayat,
       }),
+    }),
+  menuBelumDikenal: () => minta<MenuBelumDikenal[]>("/menu-belum-dikenal"),
+  tambahMenuBelumDikenal: (kunci: string, nama: string, harga: number) =>
+    minta<{ menu: Product; pesanan_dicocokkan: number }>("/menu-belum-dikenal/tambahkan", {
+      method: "POST",
+      body: json({ kunci, nama, harga }),
     }),
   daftarPercakapan: () => minta<RingkasPercakapan[]>("/agent/percakapan"),
   detailPercakapan: (id: string) => minta<DetailPercakapan>(`/agent/percakapan/${id}`),

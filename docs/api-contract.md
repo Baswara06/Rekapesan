@@ -62,6 +62,13 @@ Product = {
 }
 ```
 
+### Menu dipesan tapi belum ada di katalog
+
+| Method | Path | Isi |
+| --- | --- | --- |
+| GET | `/menu-belum-dikenal` | `[{kunci, nama, jumlah_pesanan, total_porsi, contoh}]`: item pesanan (belum batal) tanpa `product_id`, dikelompokkan kode (huruf kecil, tanpa angka dan kata pengisi seperti "porsi", "ya", "kak") |
+| POST | `/menu-belum-dikenal/tambahkan` | `{kunci, nama, harga, stok_harian?}` → 201 `{menu, pesanan_dicocokkan}`. Menu dibuat dengan harga dari penjual (alias = `kunci`), lalu item lama yang kuncinya sama diberi `product_id` dan harga, total dan tanda kuning dihitung ulang. 409 bila menu aktif bernama sama sudah ada |
+
 ## Batch
 
 | Method | Path | Isi |

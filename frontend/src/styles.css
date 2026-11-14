@@ -4148,3 +4148,61 @@ main[tabindex="-1"]:focus {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ---------- Menu dipesan tapi belum ada di katalog ---------- */
+.menu-baru {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-color: var(--warn-line);
+}
+.menu-baru > p {
+  margin: 0;
+}
+.menu-baru-daftar {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.menu-baru-baris {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.65rem;
+  border-radius: var(--r-sm);
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+}
+.menu-baru-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.menu-baru-info input {
+  font-weight: 600;
+}
+.menu-baru-aksi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.menu-baru-aksi input {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+.menu-baru-baris input {
+  min-height: 44px;
+}
+.menu-baru-baris .teks-galat {
+  margin: 0;
+}
+.menu-baru-tertanam {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--rule);
+}
+.menu-baru-tertanam .judul-kartu {
+  margin: 0;
+}
