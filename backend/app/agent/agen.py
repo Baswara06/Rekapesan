@@ -119,6 +119,7 @@ async def ask_agent(question: str, batch_id: str, history: list[dict[str, str]])
                         tool=t["name"],
                         argumen={"batch_id": batch_id, **argumen},
                         hasil_ringkas=teks if len(teks) <= MAKS_RINGKAS else teks[:MAKS_RINGKAS] + "…",
+                        hasil=hasil,
                     )
                 )
                 pesan.append({"role": "tool", "tool_call_id": t["id"], "content": anonymize(teks)})

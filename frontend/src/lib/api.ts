@@ -118,6 +118,8 @@ export interface TraceLangkah {
   tool: string;
   argumen: Record<string, unknown>;
   hasil_ringkas: string;
+  /** Hasil tool utuh. Bisa tidak ada pada server lama, tampilan lalu memakai `hasil_ringkas`. */
+  hasil?: Record<string, unknown>;
 }
 
 export interface AgentAnswer {

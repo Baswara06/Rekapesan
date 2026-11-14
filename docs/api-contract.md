@@ -178,7 +178,7 @@ Model hanya memberi saran. `cocok` dihitung kode (nominal sama dengan total pesa
 
 ```json
 { "jawaban": "Ayam bakar untuk jam 12:00: 9 porsi.",
-  "trace": [{ "tool": "rekap_produksi", "argumen": {"batch_id": "uuid", "jam": "12:00"}, "hasil_ringkas": "..." }] }
+  "trace": [{ "tool": "rekap_produksi", "argumen": {"batch_id": "uuid", "jam": "12:00"}, "hasil_ringkas": "...", "hasil": { "produksi": [], "total_porsi": 0, "...": "..." } }] }
 ```
 
 Bila agen gagal atau belum tersedia, respons `llm_gagal` (502).
