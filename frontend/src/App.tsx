@@ -19,7 +19,7 @@ import Tanya from "./pages/Tanya";
 
 const NAV: { path: string; label: string; ikon: NamaIkon; cocok: string[] }[] = [
   { path: "/", label: "Beranda", ikon: "beranda", cocok: [""] },
-  { path: "/impor", label: "Impor", ikon: "impor", cocok: ["impor", "masukkan-chat"] },
+  { path: "/masukkan-chat", label: "Masukkan", ikon: "impor", cocok: ["impor", "masukkan-chat"] },
   { path: "/cek", label: "Cek", ikon: "cek", cocok: ["cek", "pesanan"] },
   { path: "/rekap", label: "Rekap", ikon: "rekap", cocok: ["rekap"] },
   // Tanya AI jadi tab sendiri supaya fitur AI terlihat di HP. Katalog dan Pengaturan lewat ikon gerigi di bilah atas.
@@ -29,7 +29,7 @@ const NAV: { path: string; label: string; ikon: NamaIkon; cocok: string[] }[] = 
 /** Navigasi bilah atas di layar lebar: semua layar utama terlihat tanpa menu "Lainnya". */
 const NAV_ATAS: { path: string; label: string; cocok: string[] }[] = [
   { path: "/", label: "Beranda", cocok: [""] },
-  { path: "/impor", label: "Impor", cocok: ["impor"] },
+  { path: "/masukkan-chat", label: "Masukkan chat", cocok: ["impor", "masukkan-chat"] },
   { path: "/cek", label: "Cek pesanan", cocok: ["cek", "pesanan"] },
   { path: "/rekap", label: "Rekap", cocok: ["rekap"] },
   { path: "/tanya", label: "Tanya AI", cocok: ["tanya"] },
@@ -179,7 +179,7 @@ export default function App() {
           </nav>
           <div className="bilah-kanan">
             {batchAktif && (
-              <a href="#/" className="chip-po" title={`PO aktif: ${batchAktif.nama}`}>
+              <a href="#/" className="chip-po" title={`Hari yang ditampilkan: ${batchAktif.nama}`}>
                 <Icon nama="kalender" ukuran={15} />
                 <span>{batchAktif.nama}</span>
               </a>

@@ -108,7 +108,7 @@ export default function Beranda({ perluCek }: { perluCek: number | null }) {
       <div className="kisi-beranda">
         <div className="tumpuk">
           {batchAktif && (
-            <section className="ringkasan" aria-label="Ringkasan PO">
+            <section className="ringkasan" aria-label="Ringkasan hari ini">
               <div className="ringkasan-atas">
                 <span className="label-huruf-besar">Omzet disetujui</span>
                 {perluCek ? (
@@ -165,7 +165,7 @@ export default function Beranda({ perluCek }: { perluCek: number | null }) {
               <div className="kerangka-baris" role="status" aria-label="Memuat pesanan" />
             ) : terbaru.length === 0 ? (
               <div className="terbaru-kosong">
-                <p>Belum ada pesanan di PO ini. Masukkan chat grup, nanti setiap pesan pembeli muncul di sini sebagai pesanan yang rapi.</p>
+                <p>Belum ada pesanan di hari ini. Masukkan chat grup, nanti setiap pesan pembeli muncul di sini sebagai pesanan yang rapi.</p>
                 <a href="#/impor" className="tombol tombol-utama">
                   <Icon nama="impor" />
                   <span>Masukkan chat</span>

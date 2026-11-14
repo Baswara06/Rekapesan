@@ -33,7 +33,7 @@ export default function Rekap() {
   const pesananMap = new Map<string, Order>((d?.pesanan ?? []).map((o) => [o.id, o]));
 
   function teksRekap(r: Recap, belanja: ShoppingList): string {
-    const baris = [`*Rekap ${batchAktif?.nama ?? "PO"}*`, `Kirim: ${tanggalPanjang(batchAktif?.tanggal_kirim)}`, "", "*Masak:*"];
+    const baris = [`*Rekap ${batchAktif?.nama ?? "pesanan"}*`, `Kirim: ${tanggalPanjang(batchAktif?.tanggal_kirim)}`, "", "*Masak:*"];
     r.produksi.forEach((p) => baris.push(`- ${p.nama}: ${p.qty} porsi`));
     baris.push("", "*Urutan kirim:*");
     r.urutan_kirim.forEach((u) => {

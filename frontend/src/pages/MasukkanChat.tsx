@@ -192,6 +192,9 @@ export default function MasukkanChat() {
           <Tombol varian="utama" besar penuh ikon="kanan" memuat={jalan} disabled={!isi} onClick={bacaPratinjau}>
             {jalan ? "Sedang membaca chat…" : "Lanjut"}
           </Tombol>
+          <p className="redup kecil tengah">
+            <a href="#/impor">Impor ke hari tertentu (lanjutan)</a>
+          </p>
         </Kaca>
       )}
 
