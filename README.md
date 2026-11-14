@@ -44,7 +44,50 @@ Tiga tanda masalah layak digarap:
 | Informasi berantakan | Pesanan tersebar di ratusan baris chat bercampur obrolan |
 | Keputusan tertunda | Jumlah produksi dan belanja baru diketahui setelah rekap manual selesai |
 
-**Bukti lapangan:** _isi hasil wawancara dan pengukuran waktu penjual asli (sebelum vs sesudah). Jangan klaim angka yang tidak diukur._
+### Bukti lapangan (diukur tim)
+
+Belum terisi: wawancara dan survei singkat dengan penjual asli masih berjalan. Bagian ini hanya diisi dengan angka yang benar-benar kami ukur, tanpa dibulatkan atau diperkirakan.
+
+| Ukuran | Hasil |
+| --- | --- |
+| Jumlah penjual yang diwawancarai | _isi_ |
+| Waktu rekap manual, diukur dengan stopwatch (menit) | _isi_ |
+| Waktu rekap dengan Rekapesan, chat yang sama (menit) | _isi_ |
+| Pesanan benar / salah / ditandai kuning | _isi_ |
+| Skor "mudah dipakai", "hasil bisa dipercaya", "menghemat waktu" (1-5) | _isi_ |
+| Survei singkat lewat chat (jumlah responden, kesalahan yang paling sering, fitur yang paling dibutuhkan) | _isi_ |
+
+### Bukti pendukung (bukan hasil pengukuran tim)
+
+Tiga sumber di bawah dibaca pada 13 November 2026. Isinya menunjukkan **di mana** penjual UMKM berjualan dan bagaimana cara lama dijalankan. Isinya **tidak** mengukur berapa lama rekap PO manual.
+
+**1. WhatsApp adalah platform yang paling sering dipakai penjual online UKM.** Survei Paxel Buy & Send Insight terhadap 535 penjual online UKM (29 Juli sampai 4 Agustus 2019, separuh responden penjual makanan) melaporkan platform yang paling sering dipakai. Satu responden boleh memakai lebih dari satu platform, jadi totalnya melebihi 100%.
+
+| Platform | Dipakai oleh |
+| --- | --- |
+| WhatsApp | 84% |
+| Instagram | 81% |
+| Shopee | 53% |
+| Facebook | 36% |
+| Tokopedia | 29% |
+| Bukalapak | 18% |
+
+Sumber: Elisabeth Adventa, "Riset Paxel: Mayoritas UMKM online pilih medsos dan layanan same day delivery", Kontan, 2 Oktober 2019. Datanya berumur lebih dari tujuh tahun.
+
+**2. Perpesanan dipakai mayoritas UMKM Indonesia.** Riset Boston Consulting Group dan Meta (2024), seperti dikutip UKM Indonesia, menyebut perpesanan murni dan perpesanan media sosial paling banyak dipakai pelaku bisnis di Indonesia: 90% perusahaan besar dan 83% UMKM. Artikel pengutipnya tidak menyebut jumlah sampel, metode, maupun periode survei, dan angka ini mencakup dua jenis saluran, bukan WhatsApp saja. Klaim "penjualan naik tiga kali lipat" di artikel yang sama berasal dari satu studi kasus Kopi Kenangan, bukan dari survei, sehingga tidak kami pakai.
+
+Sumber: Annisa Anastasya, "Perpesanan Bisnis Bikin Penjualan Naik Tiga Kali Lipat? Riset BCG dan Meta Ungkap Fakta Menarik Ini", UKM Indonesia, 26 Agustus 2024.
+
+**3. Cara lama: pesanan diteruskan manual dan bukti transfer dicocokkan satu per satu.** Artikel panduan WhatsApp untuk bisnis F&B dari SleekFlow menggambarkan cara lama sebagai "grup WhatsApp staf tempat pesanan diteruskan manual" dan menyebut bahwa "staf harus mencocokkan foto bukti transfer satu per satu" untuk pesanan, PO hampers, dan katering. SleekFlow adalah vendor perangkat lunak percakapan, jadi ini gambaran kualitatif dari pihak yang berjualan produk, bukan riset independen, dan tanpa data seberapa sering atau seberapa besar masalahnya.
+
+Sumber: Kalyca Kris, "WhatsApp untuk Bisnis F&B: Cara Restoran, Kafe, dan Katering Mengelola Reservasi, Pesanan, dan Pertanyaan Halal dari Satu Nomor", SleekFlow (tanpa tanggal terbit, terakhir diubah 27 Oktober 2026).
+
+### Keterbatasan bukti
+
+- Sumber di atas menunjukkan bahwa penjual berjualan lewat chat, bukan berapa menit rekap PO manual atau seberapa sering salah. Angka itu hanya akan datang dari wawancara dan survei kami sendiri.
+- Wawancara dan survei kami berjumlah kecil, jadi tidak bisa digeneralisasi ke seluruh penjual PO.
+- Satu sumber berasal dari vendor, satu sudah berumur lebih dari tujuh tahun, dan satu tidak menyebut sampel dan metode.
+- Kami tidak memakai angka dari sumber lain untuk menyimpulkan lama atau kesalahan rekap manual, dan tidak membandingkannya dengan waktu hasil ukur kami.
 
 ---
 
@@ -186,4 +229,10 @@ _Isi jujur. Contoh: share target tidak didukung PWA di iPhone, format ekspor diu
 
 ## 11. Atribusi
 
-_Isi template, ikon, font, dataset, atau kode pihak ketiga yang dipakai._
+Sumber kutipan bukti pendukung (bagian 2), dibaca 13 November 2026:
+
+- Elisabeth Adventa. "Riset Paxel: Mayoritas UMKM online pilih medsos dan layanan same day delivery." Kontan, 2 Oktober 2019. https://industri.kontan.co.id/news/riset-paxel-mayoritas-umkm-online-pilih-medsos-dan-layanan-same-day-delivery
+- Annisa Anastasya. "Perpesanan Bisnis Bikin Penjualan Naik Tiga Kali Lipat? Riset BCG dan Meta Ungkap Fakta Menarik Ini." UKM Indonesia, 26 Agustus 2024. https://ukmindonesia.id/baca-deskripsi-posts/perpesanan-bisnis-bikin-penjualan-naik-tiga-kali-lipat-riset-bcg-dan-meta-ungkap-fakta-menarik-ini
+- Kalyca Kris. "WhatsApp untuk Bisnis F&B: Cara Restoran, Kafe, dan Katering Mengelola Reservasi, Pesanan, dan Pertanyaan Halal dari Satu Nomor." SleekFlow (vendor). https://sleekflow.io/id-id/blog/whatsapp-untuk-bisnis-fnb
+
+Template, ikon, font, dataset, atau kode pihak ketiga lain: _isi bila ada._
