@@ -117,3 +117,41 @@ def test_database_lama_diberi_kolom_pemilik_dan_data_diserahkan_ke_demo(tmp_path
         s.add(Batch(id="b-baru", pemilik="bu_sari", nama="PO", tanggal_kirim=date(2026, 11, 14)))
         s.commit()
         assert s.get(Batch, "b-baru").pemilik == "bu_sari"
+
+
+def test_database_lama_tanpa_nama_toko_tetap_jalan(tmp_path, monkeypatch):
+    """Tabel `users` lama tanpa kolom `nama_toko`: kolom ditambahkan, akun lama tetap bisa login."""
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.orm import Session
+
+    monkeypatch.setattr(
+        security, "get_settings", lambda: Settings(demo_username="demo", demo_password="rahasia", app_secret_key=KUNCI_UJI)
+    )
+    engine = create_engine(f"sqlite:///{tmp_path / 'lama.db'}")
+    with engine.begin() as conn:  # skema users sebelum ada nama toko
+        conn.execute(text("CREATE TABLE users (id VARCHAR(36) PRIMARY KEY, username VARCHAR(32) UNIQUE, password_hash VARCHAR(200), dibuat_pada DATETIME)"))
+        conn.execute(
+            text("INSERT INTO users (id, username, password_hash) VALUES ('u-lama', 'bu_sari', :h)"),
+            {"h": security.hash_password("sandi-rahasia")},
+        )
+    init_db(engine)
+    init_db(engine)  # aman diulang
+    with Session(engine) as s:
+        lama = s.get(User, "u-lama")
+        assert lama.nama_toko is None
+        s.add(User(username="pak_budi", password_hash="x", nama_toko="Dapur Pak Budi"))
+        s.commit()
+        assert s.scalar(select(User).where(User.username == "pak_budi")).nama_toko == "Dapur Pak Budi"
+
+    from app.db import get_db
+
+    def _sesi():
+        with Session(engine, expire_on_commit=False) as s:
+            yield s
+
+    app.dependency_overrides[get_db] = _sesi
+    try:
+        res = TestClient(app).post("/api/auth/login", json={"username": "bu_sari", "password": "sandi-rahasia"})
+        assert res.status_code == 200
+    finally:
+        app.dependency_overrides.clear()
