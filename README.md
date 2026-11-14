@@ -13,7 +13,7 @@ Dibuat untuk **LOGICODIX 2026** (HIMTI UNESA).
 | **Subtema** | Local MSME and Creative Economy |
 | **Demo (deploy)** | _isi setelah deploy_ |
 | **Video demo** | _isi tautan YouTube_ |
-| **Akun demo** | username `demo` / password: _isi_ |
+| **Akun demo** | username `demo` / password: _isi_ (berisi katalog dan PO contoh). Bisa juga **Daftar** akun baru di layar Masuk |
 
 ---
 
@@ -86,7 +86,7 @@ Harga tidak pernah dikirim ke LLM dan tidak pernah berasal dari LLM, sehingga ma
 - [ ] Agen tanya-jawab dengan tool calling (read-only) dan tampilan trace
 - [ ] Daftar belanja bahan baku dari resep per menu
 - [ ] Tanda "sudah bayar" dari tangkapan layar transfer (dikonfirmasi penjual)
-- [ ] Autentikasi dan hapus batch beserta pesan mentahnya
+- [ ] Daftar dan masuk akun penjual (data tiap akun terpisah), hapus batch beserta pesan mentahnya
 - [ ] Evaluasi otomatis di CI
 
 _Centang yang benar-benar selesai. Jangan centang yang belum._
@@ -132,11 +132,12 @@ Prasyarat: Python 3.11+, Node 20+, [uv](https://docs.astral.sh/uv/) (disarankan)
 
 ```bash
 # 1. Konfigurasi
-cp .env.example .env        # isi LLM_API_KEY dan nilai lain
+cp .env.example .env        # isi LLM_API_KEY, DEMO_PASSWORD, dan APP_SECRET_KEY (min. 16 karakter)
 
 # 2. Backend
 cd backend
 uv venv && uv pip install -r requirements.txt
+uv run python -m app.seed   # data demo untuk akun demo (katalog + satu PO contoh), tanpa LLM
 uv run uvicorn app.main:app --reload --port 8000
 
 # 3. Frontend (terminal lain)
@@ -150,6 +151,17 @@ cd frontend && npm test
 ```
 
 Data contoh (samaran): [`sample/ekspor-contoh.txt`](sample/ekspor-contoh.txt)
+
+Bila `DEMO_PASSWORD` kosong, atau `APP_SECRET_KEY` kosong, masih nilai bawaan, atau kurang dari 16 karakter, masuk dan daftar sengaja dimatikan dan layar Masuk menyebut isian `.env` yang kurang.
+
+### Alur pemakaian
+
+1. **Masuk** dengan akun demo, atau **Daftar** akun baru (nama pengguna dan kata sandi minimal 8 karakter). Setelah daftar langsung masuk.
+2. Akun baru: isi **Katalog** dulu (nama menu, alias, harga, stok). Impor ditolak selama katalog masih kosong.
+3. Buat **PO** (tanggal chat dibuka dan tanggal kirim), lalu **Masukkan chat**: ekspor `.txt`/`.zip` dari WhatsApp atau tempel teks.
+4. **Review** pesanan bertanda kuning, perbaiki bila perlu, lalu setujui.
+5. Lihat **Rekap** (produksi, urutan kirim, omzet, belum bayar) dan salin balasan konfirmasi ke pembeli.
+6. Setelah PO selesai, hapus PO di Pengaturan. Pesan mentah ikut terhapus.
 
 ---
 
@@ -171,6 +183,8 @@ Data yang dikirim ke penyedia LLM: teks chat yang nomor teleponnya sudah disamar
 - Agen tanya-jawab memakai akses database **read-only**.
 - Tidak ada pesanan final tanpa persetujuan penjual.
 - Tombol hapus batch ikut menghapus pesan mentah.
+- Kata sandi disimpan sebagai hash PBKDF2-SHA256, bukan teks asli.
+- Data tiap akun terpisah: katalog, PO, pesanan, dan pesan mentah akun lain dijawab "tidak ditemukan". Agen tanya-jawab hanya bisa membaca PO milik akun yang bertanya, karena `batch_id` ditetapkan kode, bukan oleh model.
 - API key hanya di `.env` (masuk `.gitignore`), `.env.example` tanpa nilai asli.
 - Data contoh memakai nama dan alamat samaran. Chat asli hanya dipakai dengan izin penjual.
 
@@ -181,6 +195,9 @@ Data yang dikirim ke penyedia LLM: teks chat yang nomor teleponnya sudah disamar
 _Isi dari [`docs/evaluasi.md`](docs/evaluasi.md) apa adanya, termasuk angka "salah dan lolos tanpa tanda"._
 
 ## 10. Batasan yang diketahui
+
+- Akun: belum ada verifikasi email dan fitur lupa kata sandi (aplikasi belum mengirim email). Satu akun untuk satu penjual, belum ada akun staf atau peran.
+- Profil toko (nama toko di balasan konfirmasi) belum ada.
 
 _Isi jujur. Contoh: share target tidak didukung PWA di iPhone, format ekspor diuji pada Android dan iPhone dengan bahasa tertentu saja._
 
