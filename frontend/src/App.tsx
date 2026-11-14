@@ -117,7 +117,7 @@ export default function App() {
   let halaman;
   switch (s0) {
     case undefined:
-      halaman = <Beranda perluCek={perluCek} />;
+      halaman = <Beranda />;
       break;
     case "masukkan-chat":
       halaman = <MasukkanChat />;
@@ -147,7 +147,7 @@ export default function App() {
       halaman = <Lainnya />;
       break;
     default:
-      halaman = <Beranda perluCek={perluCek} />;
+      halaman = <Beranda />;
   }
 
 
