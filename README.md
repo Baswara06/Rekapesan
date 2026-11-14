@@ -113,6 +113,7 @@ Penjual tidak perlu membuat PO atau mengisi katalog dari nol. Cukup masukkan eks
 | Harga, total, sisa stok | Kode |
 | Menandai pesanan bermasalah | Kode |
 | Saran "sudah bayar" dan "sudah terima" dari isi chat | Kode, kata kunci (penjual memutuskan) |
+| Membaca nama dan nominal dari foto bukti transfer | LLM vision, hanya bila penjual memilihnya. Cocok atau beda dengan total dihitung kode (penjual memutuskan) |
 | Memutuskan pesanan bermasalah, pelunasan, dan pesanan selesai | Penjual |
 | Menjawab pertanyaan tentang pesanan | LLM dengan tool read-only, jawaban disertai langkahnya |
 
@@ -121,7 +122,7 @@ Harga tidak pernah dikirim ke LLM dan tidak pernah berasal dari LLM, sehingga ma
 ### Alur pemakaian
 
 1. **Daftar**: nama toko, nama pengguna, kata sandi (minimal 8 karakter), ulangi kata sandi. Setelah daftar langsung masuk.
-2. **Masukkan chat**: unggah ekspor chat WhatsApp (`.txt`/`.zip`, tanpa media) atau tempel teksnya. Tidak ada langkah membuat PO.
+2. **Masukkan chat**: unggah ekspor chat WhatsApp (`.txt`, atau `.zip` dengan maupun tanpa media) atau tempel teksnya. Tidak ada langkah membuat PO. Bila `.zip` berisi media, penjual bisa mencentang **Baca bukti transfer dari foto**: foto dari pembeli yang punya pesanan di hari itu (maksimal 30) dibaca AI menjadi saran nama dan nominal.
 3. **Cek menu**: kode menebak penjual serta daftar menu dan harga dari pesan menu di chat. Penjual memeriksa, mengubah bila perlu, lalu menyimpan. Menu yang disebut pembeli tetapi tidak ada di daftar menu ditampilkan terpisah tanpa harga, penjual yang memutuskan.
 4. **Proses pesanan**: chat dipecah per hari (maksimal 14 hari terakhir), AI membaca isi pesanan, kode menghitung total dan tanda kuning.
 5. **Papan pesanan** di Beranda:
@@ -140,9 +141,9 @@ Harga tidak pernah dikirim ke LLM dan tidak pernah berasal dari LLM, sehingga ma
 Dicentang hanya bila sudah ada di server demo dan punya uji otomatis.
 
 - [x] Daftar dan masuk akun penjual dengan nama toko, data tiap akun terpisah
-- [x] Masukkan chat tanpa membuat PO: ekspor `.txt` / `.zip` atau tempel teks, dipecah per hari
+- [x] Masukkan chat tanpa membuat PO: ekspor `.txt` / `.zip` (dengan atau tanpa media) atau tempel teks, dipecah per hari
 - [x] Cek menu: daftar menu dan harga ditebak kode dari pesan menu penjual, penjual yang menyimpan
-- [ ] Menu yang dipesan pembeli tetapi belum ada di katalog: ditampilkan di pratinjau dan Beranda, penjual mengisi harga lalu pesanan lama dicocokkan ulang
+- [x] Menu yang dipesan pembeli tetapi belum ada di katalog: ditampilkan di pratinjau dan Beranda, penjual mengisi harga lalu pesanan lama dicocokkan ulang
 - [x] Ekstraksi pesanan dengan LLM per pengirim, keluaran JSON tervalidasi skema, penyedia cadangan otomatis
 - [x] Papan pesanan: Perlu diproses dan Riwayat, per hari dan per jam, status dan sudah/belum bayar, ringkasan keseluruhan
 - [x] Saran "sudah bayar" dan "sudah terima" dari kata kunci chat, status berubah hanya setelah penjual menekan tombol
@@ -153,6 +154,7 @@ Dicentang hanya bila sudah ada di server demo dan punya uji otomatis.
 - [x] Balasan konfirmasi per pembeli dengan nama toko (templat, siap salin)
 - [x] Tanya AI: agen dengan tool read-only untuk semua hari, tampilan langkah agen, riwayat percakapan 30 hari
 - [x] Tanda "sudah bayar" dari tangkapan layar transfer (saran AI, dikonfirmasi penjual), termasuk pelunasan setelah dikirim (COD)
+- [x] Bukti transfer dari foto di ekspor `.zip` dengan media: dibaca AI hanya bila penjual mencentang, nominal dicocokkan kode dengan total, tampil sebagai saran di papan
 - [x] Hapus data per hari beserta pesan mentahnya
 - [x] Uji otomatis backend dan frontend di CI (GitHub Actions)
 - [ ] Bagikan langsung dari WhatsApp (PWA share target, Android): sudah dibuat, belum diuji di HP Android
@@ -255,9 +257,9 @@ API key dan kredensial sensitif disimpan di `.env` server dan tidak disertakan d
 | Di dalam produk | `claude-haiku-5-5` lewat penyedia kompatibel OpenAI API (sumopod), cadangan otomatis `gpt-5.4-mini`. Diatur di `.env` (`LLM_MODEL`, `LLM_FALLBACK_MODEL`, `VISION_MODEL`; bila `VISION_MODEL` kosong, bukti bayar memakai model utama) | Ekstraksi pesanan, Tanya AI, pembacaan bukti bayar |
 | Saat pengembangan | Claude Code (Anthropic) | Membantu menulis dan meninjau kode, uji, dan dokumentasi. Setiap perubahan masuk lewat Pull Request dan harus lulus uji CI |
 
-Data yang dikirim ke penyedia LLM: teks chat yang nomor teleponnya sudah disamarkan, dan daftar katalog (id, nama, alias, tanpa harga). Gambar bukti bayar dikirim hanya saat penjual menekan tombol baca.
+Data yang dikirim ke penyedia LLM: teks chat yang nomor teleponnya sudah disamarkan, dan daftar katalog (id, nama, alias, tanpa harga). Gambar bukti transfer dikirim hanya bila penjual memilihnya: menekan tombol baca di detail pesanan, atau mencentang **Baca bukti transfer dari foto** saat memasukkan `.zip` dengan media (hanya foto dari pembeli yang punya pesanan di hari itu, maksimal 30). Foto tidak disamarkan, jadi isinya (mis. nama dan nomor rekening di struk) ikut terbaca penyedia. Karena itu pilihan ini tidak aktif bila tidak dicentang.
 
-Efisiensi: satu panggilan per pengirim per hari, paralel, tanpa pemanggilan berulang kecuali keluaran tidak sah. Pratinjau menu tidak memanggil LLM sama sekali. Pesan yang sudah pernah diproses tidak dikirim lagi, impor dibatasi 14 hari terakhir, dan impor ditolak sebelum memanggil LLM bila katalog masih kosong. Model dipilih dari perbandingan lima model dengan penilai yang sama ([`docs/evaluasi.md`](docs/evaluasi.md)).
+Efisiensi: satu panggilan per pengirim per hari, paralel, tanpa pemanggilan berulang kecuali keluaran tidak sah. Pratinjau menu tidak memanggil LLM sama sekali. Pesan yang sudah pernah diproses tidak dikirim lagi, impor dibatasi 14 hari terakhir, dan impor ditolak sebelum memanggil LLM bila katalog masih kosong. Foto bukti transfer hanya dibaca bila dicentang, maksimal 30 per impor, dan foto yang sudah dibaca tidak dibaca lagi saat impor ulang. Model dipilih dari perbandingan lima model dengan penilai yang sama ([`docs/evaluasi.md`](docs/evaluasi.md)).
 
 ---
 
@@ -296,6 +298,7 @@ Set uji kecil dan sintetis, jadi angka ini belum mewakili chat penjual sungguhan
 - Saran "sudah bayar" dan "sudah terima" hanya dibaca dari kata kunci (mis. "udah transfer", "bukti tf", "udah sampai", "sudah diterima"). Kalimat lain bisa terlewat atau salah terbaca, jadi saran ini tidak pernah mengubah status sendiri.
 - Daftar menu di Cek menu adalah tebakan kode dari pesan menu penjual (minimal dua harga dalam satu pesan). Menu yang disebut pembeli tetapi tidak ada di daftar menu juga tebakan kode, ditampilkan tanpa harga. Penjual yang memutuskan semuanya. Menu yang hanya dikirim sebagai gambar tidak terbaca.
 - Impor membaca maksimal 14 hari terakhir dari chat.
+- Foto bukti transfer hanya terbaca dari ekspor `.zip` dengan media, maksimal 30 foto per impor, dan hanya foto dari pembeli yang punya pesanan di hari itu. Hasilnya saran: nama dan nominal bisa salah terbaca, dan struk QRIS tidak memuat nama pengirim.
 - Akun: belum ada verifikasi email dan fitur lupa kata sandi. Satu akun untuk satu penjual, belum ada akun staf atau peran.
 - Format ekspor diuji pada contoh Android, iPhone (bahasa Indonesia dan Inggris), dan salinan WhatsApp Web. Format bahasa atau wilayah lain belum diuji.
 - Bagikan langsung dari WhatsApp (share target) hanya untuk PWA di Android dan belum diuji di HP. iPhone tidak mendukung fitur ini, jadi pengguna iPhone memakai unggah berkas atau tempel teks.
