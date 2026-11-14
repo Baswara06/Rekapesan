@@ -11,6 +11,7 @@ import Impor from "./pages/Impor";
 import Katalog from "./pages/Katalog";
 import Lainnya from "./pages/Lainnya";
 import Login from "./pages/Login";
+import MasukkanChat from "./pages/MasukkanChat";
 import Pengaturan from "./pages/Pengaturan";
 import Rekap from "./pages/Rekap";
 import Review from "./pages/Review";
@@ -18,7 +19,7 @@ import Tanya from "./pages/Tanya";
 
 const NAV: { path: string; label: string; ikon: NamaIkon; cocok: string[] }[] = [
   { path: "/", label: "Beranda", ikon: "beranda", cocok: [""] },
-  { path: "/impor", label: "Impor", ikon: "impor", cocok: ["impor"] },
+  { path: "/impor", label: "Impor", ikon: "impor", cocok: ["impor", "masukkan-chat"] },
   { path: "/cek", label: "Cek", ikon: "cek", cocok: ["cek", "pesanan"] },
   { path: "/rekap", label: "Rekap", ikon: "rekap", cocok: ["rekap"] },
   // Tanya AI jadi tab sendiri supaya fitur AI terlihat di HP. Katalog dan Pengaturan lewat ikon gerigi di bilah atas.
@@ -38,6 +39,7 @@ const NAV_ATAS: { path: string; label: string; cocok: string[] }[] = [
 const JUDUL_LAYAR: Record<string, string> = {
   "": "Beranda",
   impor: "Masukkan chat",
+  "masukkan-chat": "Masukkan chat",
   cek: "Cek pesanan",
   pesanan: "Detail pesanan",
   rekap: "Rekap",
@@ -115,6 +117,9 @@ export default function App() {
   switch (s0) {
     case undefined:
       halaman = <Beranda perluCek={perluCek} />;
+      break;
+    case "masukkan-chat":
+      halaman = <MasukkanChat />;
       break;
     case "impor":
       halaman = <Impor rute={rute} />;

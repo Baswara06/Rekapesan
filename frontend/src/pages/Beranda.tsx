@@ -1,6 +1,7 @@
 import { PilihBatch } from "../components/Batch";
 import { AjakIsiNamaToko, SiapkanToko } from "../components/Toko";
 import { Icon } from "../components/Icon";
+import { PapanPesanan, RingkasanKeseluruhan } from "../components/PapanPesanan";
 import { LencanaStatus } from "../components/ui";
 import { api, type Order } from "../lib/api";
 import { inisial, namaMenu, rupiah, sapaan, tanggalPanjang } from "../lib/format";
@@ -11,7 +12,10 @@ const MAKS_BATANG = 7;
 const MAKS_BAYAR = 3;
 
 export default function Beranda({ perluCek }: { perluCek: number | null }) {
-  const { batchAktif, batches, batchSiap, versiData, akun, katalog, katalogSiap } = useApp();
+  const { batchAktif, batches, batchSiap, versiData, dataBerubah, akun, katalog, katalogSiap } = useApp();
+  // Papan pesanan semua hari (buku pesanan harian). Kalau server belum punya /ringkasan, Beranda lama tetap tampil.
+  const papan = useMuat(() => api.ringkasan(), [versiData]);
+  const adaPapan = !!papan.data && papan.data.hari.some((h) => h.jam.some((j) => j.pesanan.length > 0));
   const data = useMuat(
     batchAktif
       ? async () => {
@@ -43,7 +47,14 @@ export default function Beranda({ perluCek }: { perluCek: number | null }) {
           </div>
         </header>
         {mintaNamaToko && <AjakIsiNamaToko />}
-        {katalogSiap ? <SiapkanToko adaPesanan={false} /> : <CaraKerja />}
+        <TombolMasukkanChat />
+        {adaPapan && papan.data && (
+          <>
+            <RingkasanKeseluruhan data={papan.data.keseluruhan} />
+            <PapanPesanan data={papan.data} saatBerubah={dataBerubah} />
+          </>
+        )}
+        {!adaPapan && (katalogSiap ? <SiapkanToko adaPesanan={false} /> : <CaraKerja />)}
       </div>
     );
   }
@@ -81,7 +92,18 @@ export default function Beranda({ perluCek }: { perluCek: number | null }) {
         </div>
       </header>
       {mintaNamaToko && <AjakIsiNamaToko />}
-      {tampilSiapkan && <SiapkanToko adaPesanan={pesanan.length > 0} />}
+      <TombolMasukkanChat />
+      {tampilSiapkan && !adaPapan && <SiapkanToko adaPesanan={pesanan.length > 0} />}
+
+      {papan.memuat && !papan.data ? (
+        <div className="kerangka-baris" role="status" aria-label="Memuat papan pesanan" />
+      ) : adaPapan && papan.data ? (
+        <section className="tumpuk" aria-labelledby="judul-papan">
+          <h2 id="judul-papan">Papan pesanan</h2>
+          <RingkasanKeseluruhan data={papan.data.keseluruhan} />
+          <PapanPesanan data={papan.data} saatBerubah={dataBerubah} />
+        </section>
+      ) : null}
 
       <div className="kisi-beranda">
         <div className="tumpuk">
@@ -273,6 +295,16 @@ function BarisTerbaru({ order }: { order: Order }) {
         </span>
       </span>
       <span className="terbaru-total">{rupiah(order.total)}</span>
+    </a>
+  );
+}
+
+/** Ajakan utama: masukkan chat beberapa hari sekaligus, pesanan dipisah per hari. */
+function TombolMasukkanChat() {
+  return (
+    <a href="#/masukkan-chat" className="tombol tombol-utama tombol-besar tombol-penuh tombol-masukkan-chat">
+      <Icon nama="chat" ukuran={22} />
+      <span>Masukkan chat</span>
     </a>
   );
 }
