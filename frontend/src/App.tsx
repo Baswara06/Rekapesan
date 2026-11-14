@@ -12,6 +12,7 @@ import Impor from "./pages/Impor";
 import Katalog from "./pages/Katalog";
 import Lainnya from "./pages/Lainnya";
 import Login from "./pages/Login";
+import MasukkanChat from "./pages/MasukkanChat";
 import Pengaturan from "./pages/Pengaturan";
 import Rekap from "./pages/Rekap";
 import Review from "./pages/Review";
@@ -19,7 +20,7 @@ import Tanya from "./pages/Tanya";
 
 const NAV: { path: string; label: string; ikon: NamaIkon; cocok: string[] }[] = [
   { path: "/", label: "Beranda", ikon: "beranda", cocok: [""] },
-  { path: "/impor", label: "Impor", ikon: "impor", cocok: ["impor"] },
+  { path: "/masukkan-chat", label: "Masukkan", ikon: "impor", cocok: ["impor", "masukkan-chat"] },
   { path: "/cek", label: "Cek", ikon: "cek", cocok: ["cek", "pesanan"] },
   { path: "/rekap", label: "Rekap", ikon: "rekap", cocok: ["rekap"] },
   // Tanya AI jadi tab sendiri supaya fitur AI terlihat di HP. Katalog dan Pengaturan lewat ikon gerigi di bilah atas.
@@ -29,7 +30,7 @@ const NAV: { path: string; label: string; ikon: NamaIkon; cocok: string[] }[] = 
 /** Navigasi bilah atas di layar lebar: semua layar utama terlihat tanpa menu "Lainnya". */
 const NAV_ATAS: { path: string; label: string; cocok: string[] }[] = [
   { path: "/", label: "Beranda", cocok: [""] },
-  { path: "/impor", label: "Impor", cocok: ["impor"] },
+  { path: "/masukkan-chat", label: "Masukkan chat", cocok: ["impor", "masukkan-chat"] },
   { path: "/cek", label: "Cek pesanan", cocok: ["cek", "pesanan"] },
   { path: "/rekap", label: "Rekap", cocok: ["rekap"] },
   { path: "/tanya", label: "Tanya AI", cocok: ["tanya"] },
@@ -39,6 +40,7 @@ const NAV_ATAS: { path: string; label: string; cocok: string[] }[] = [
 const JUDUL_LAYAR: Record<string, string> = {
   "": "Beranda",
   impor: "Masukkan chat",
+  "masukkan-chat": "Masukkan chat",
   cek: "Cek pesanan",
   pesanan: "Detail pesanan",
   rekap: "Rekap",
@@ -117,6 +119,9 @@ export default function App() {
     case undefined:
       halaman = <Beranda perluCek={perluCek} />;
       break;
+    case "masukkan-chat":
+      halaman = <MasukkanChat />;
+      break;
     case "impor":
       halaman = <Impor rute={rute} />;
       break;
@@ -175,7 +180,7 @@ export default function App() {
           </nav>
           <div className="bilah-kanan">
             {batchAktif && (
-              <a href="#/" className="chip-po" title={`PO aktif: ${batchAktif.nama}`}>
+              <a href="#/" className="chip-po" title={`Hari yang ditampilkan: ${batchAktif.nama}`}>
                 <Icon nama="kalender" ukuran={15} />
                 <span>{batchAktif.nama}</span>
               </a>

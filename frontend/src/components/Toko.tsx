@@ -1,7 +1,6 @@
 import { useId, useState, type FormEvent } from "react";
 import { api, ApiError } from "../lib/api";
 import { useApp } from "../lib/store";
-import { BuatBatch } from "./Batch";
 import { Icon, type NamaIkon } from "./Icon";
 import { Kaca, Tombol } from "./ui";
 
@@ -19,42 +18,31 @@ interface Langkah {
 }
 
 /**
- * Daftar langkah untuk akun baru: tambah menu, buat PO, masukkan chat.
- * Urutannya wajib, karena impor ditolak server (`katalog_kosong`) bila belum ada menu,
- * dan chat selalu masuk ke sebuah PO.
+ * Daftar langkah untuk akun baru: masukkan chat, lalu periksa menu.
+ * Tidak ada langkah "buat PO": sistem membuat satu kelompok per hari dari tanggal chat, dan menu
+ * terdeteksi dari daftar menu penjual di chat (dicek penjual di wizard sebelum disimpan).
  */
 export function SiapkanToko({ adaPesanan }: { adaPesanan: boolean }) {
-  const { katalog, batches } = useApp();
-  const [buatPO, setBuatPO] = useState(false);
+  const { katalog } = useApp();
   const idJudul = useId();
 
   const adaMenu = katalog.some((p) => p.aktif);
-  const adaPO = batches.length > 0;
   const langkah: Langkah[] = [
     {
-      judul: "Tambah menu",
-      isi: "Nama, harga, dan nama panggilan dari pembeli. Harga hanya disimpan di sini, AI tidak melihatnya.",
-      ikon: "katalog",
-      selesai: adaMenu,
-      kunci: "",
-      aksi: { label: "Buka Katalog", href: "#/katalog" },
-    },
-    {
-      judul: "Buat PO",
-      isi: 'Misalnya "PO Jumat". Semua pesanan dari chat masuk ke PO ini.',
-      ikon: "kalender",
-      selesai: adaPO,
-      kunci: adaMenu ? "" : "Tambah menu dulu",
-      aksi: { label: "Buat PO", klik: () => setBuatPO(true) },
-    },
-    {
       judul: "Masukkan chat",
-      isi: "Tempel atau unggah chat grup WhatsApp. AI membaca pesanannya, Anda yang menyetujui.",
+      isi: "Tempel atau unggah chat WhatsApp. Menu dan harga dibaca dari chat, pesanan dikelompokkan per hari otomatis.",
       ikon: "impor",
       selesai: adaPesanan,
-      // Impor ditolak server tanpa menu, jadi langkah ini butuh menu dan PO sekaligus.
-      kunci: !adaMenu ? "Tambah menu dulu" : !adaPO ? "Buat PO dulu" : "",
-      aksi: { label: "Masukkan chat", href: "#/impor" },
+      kunci: "",
+      aksi: { label: "Masukkan chat", href: "#/masukkan-chat" },
+    },
+    {
+      judul: "Periksa menu",
+      isi: "Tambah nama panggilan atau stok harian bila perlu. Harga hanya disimpan di sini, AI tidak melihatnya.",
+      ikon: "katalog",
+      selesai: adaMenu && adaPesanan,
+      kunci: "",
+      aksi: { label: "Buka Katalog", href: "#/katalog" },
     },
   ];
   const jumlahSelesai = langkah.filter((l) => l.selesai).length;
@@ -113,7 +101,6 @@ export function SiapkanToko({ adaPesanan }: { adaPesanan: boolean }) {
           );
         })}
       </ol>
-      <BuatBatch buka={buatPO} tutup={() => setBuatPO(false)} />
     </Kaca>
   );
 }

@@ -3708,6 +3708,215 @@ main[tabindex="-1"]:focus {
   border-color: color-mix(in srgb, var(--tool) 35%, transparent);
 }
 
+/* ===== Buku pesanan harian: tombol Masukkan chat, papan pesanan, wizard ===== */
+.tombol-papan,
+.tombol-masukkan-chat {
+  min-height: 44px;
+}
+.tombol-masukkan-chat {
+  min-height: 56px;
+  font-size: 1.05rem;
+}
+.papan-ringkasan h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+}
+.papan-kisi {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+}
+.papan-kisi > div {
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--r-sm);
+  background: var(--field);
+  min-width: 0;
+}
+.papan-kisi > div.nada-kuning {
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+}
+.papan-kisi dt {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+}
+.papan-kisi dd {
+  margin: 0.15rem 0 0;
+  font-weight: 700;
+  font-size: 1.1rem;
+  overflow-wrap: anywhere;
+}
+@media (min-width: 720px) {
+  .papan-kisi {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+.papan-hari h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+.papan-jam {
+  margin-top: 0.75rem;
+}
+.papan-jam-judul {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: var(--steel);
+}
+.papan-daftar {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+@media (min-width: 720px) {
+  .papan-daftar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.kartu-papan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.9rem 1rem;
+}
+.kartu-papan-atas {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+.kartu-papan-nama {
+  overflow-wrap: anywhere;
+}
+.kartu-papan-total {
+  white-space: nowrap;
+}
+.kartu-papan-lencana {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+.kartu-papan-item {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+.kartu-papan-alamat {
+  display: flex;
+  gap: 0.3rem;
+  align-items: flex-start;
+  margin: 0;
+  color: var(--steel);
+}
+.kartu-papan-saran {
+  list-style: none;
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--r-sm);
+  background: var(--info-bg);
+  color: var(--info-ink);
+  display: grid;
+  gap: 0.5rem;
+}
+.kartu-papan-saran p {
+  margin: 0;
+}
+.wizard-langkah {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+.wizard-langkah li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  border-radius: var(--r-sm);
+  background: var(--field);
+  color: var(--steel);
+  min-width: 0;
+}
+.wizard-langkah li.aktif {
+  background: var(--tool-soft);
+  color: var(--ink);
+  font-weight: 700;
+  outline: 2px solid var(--tool);
+}
+.wizard-no {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  background: var(--sheet);
+  border: 1px solid var(--rule-strong);
+}
+.wizard-hari,
+.wizard-menu,
+.wizard-hari-hasil {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.wizard-menu,
+.wizard-hari-hasil {
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.wizard-menu-ada,
+.wizard-hari-hasil li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--r-sm);
+  background: var(--field);
+}
+.wizard-menu-baru {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--warn-line);
+}
+.wizard-menu-baru input {
+  min-height: 44px;
+}
+.wizard-centang {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  font-weight: 600;
+}
+.wizard-centang input {
+  width: 1.4rem;
+  height: 1.4rem;
+  accent-color: var(--tool);
+}
+.wizard-menu-baru.tidak-dipilih {
+  border-style: dashed;
+  opacity: 0.75;
+}
+
 /* ---------- Menu akun di bilah atas ---------- */
 .menu-akun {
   position: relative;

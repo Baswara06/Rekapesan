@@ -96,7 +96,7 @@ export default function Login() {
           </div>
           <div className="ilu-rekap">
             <div className="ilu-rekap-kepala">
-              <span>Rekap PO</span>
+              <span>Rekap pesanan</span>
               <span className="ilu-lencana">
                 <Icon nama="centang" ukuran={14} /> Disetujui
               </span>
@@ -132,8 +132,8 @@ export default function Login() {
               <h2>{mode === "masuk" ? "Selamat datang kembali" : "Daftar akun penjual"}</h2>
               <p>
                 {mode === "masuk"
-                  ? "Masuk untuk melanjutkan rekap PO Anda."
-                  : "Buat akun supaya katalog dan PO Anda terpisah dari penjual lain."}
+                  ? "Masuk untuk melanjutkan rekap pesanan Anda."
+                  : "Buat akun supaya katalog dan pesanan Anda terpisah dari penjual lain."}
               </p>
             </div>
             {daftarMode && (

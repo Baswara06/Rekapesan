@@ -36,7 +36,7 @@ export default function Impor({ rute }: { rute: Rute }) {
         const blob = await resBerkas.blob();
         setBerkas(new File([blob], nama, { type: blob.type }));
         setMode("berkas");
-        toast("Chat dari WhatsApp siap diimpor. Periksa PO tujuan, lalu tekan Impor.", "info");
+        toast("Chat dari WhatsApp siap diimpor. Periksa hari tujuan, lalu tekan Impor.", "info");
       } else if (resTeks) {
         setTeks(await resTeks.text());
         setMode("tempel");
@@ -181,7 +181,7 @@ export default function Impor({ rute }: { rute: Rute }) {
           )}
 
           <Tombol varian="utama" besar penuh ikon="impor" memuat={jalan} disabled={!siap} onClick={impor}>
-            {jalan ? "Sedang dibaca…" : `Impor ke ${batchAktif?.nama ?? "PO"}`}
+            {jalan ? "Sedang dibaca…" : `Impor ke ${batchAktif?.nama ?? "hari ini"}`}
           </Tombol>
 
           {jalan && (
@@ -230,7 +230,7 @@ function HasilImpor({ hasil }: { hasil: ImportResult }) {
           <h2>{tidakAdaBaru ? "Tidak ada pesan baru" : "Chat berhasil dibaca"}</h2>
           <p className="redup">
             {hasil.pesan_baru} pesan baru, {hasil.pesan_dilewati} dilewati
-            {hasil.pesan_dilewati > 0 && " (sudah pernah masuk atau di luar tanggal PO)"}.
+            {hasil.pesan_dilewati > 0 && " (sudah pernah masuk atau di luar tanggalnya)"}.
           </p>
         </div>
       </div>
@@ -267,7 +267,7 @@ function CaraEkspor() {
           <Icon nama="hp" ukuran={18} /> Android
         </h3>
         <ol>
-          <li>Buka grup PO di WhatsApp.</li>
+          <li>Buka chat pesanan di WhatsApp.</li>
           <li>Ketuk titik tiga di kanan atas, pilih <strong>Lainnya</strong>, lalu <strong>Ekspor chat</strong>.</li>
           <li>
             Pilih <strong>Tanpa media</strong>.

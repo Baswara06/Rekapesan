@@ -106,7 +106,7 @@ function KartuMenu({ p, ubah, matikan }: { p: Product; ubah: () => void; matikan
         <span className="harga">{rupiah(p.harga)}</span>
       </div>
       <p className="menu-stok">
-        <Icon nama="katalog" ukuran={16} /> {p.stok_harian == null ? "Stok tidak dibatasi" : `Stok ${p.stok_harian} porsi per PO`}
+        <Icon nama="katalog" ukuran={16} /> {p.stok_harian == null ? "Stok tidak dibatasi" : `Stok ${p.stok_harian} porsi per hari`}
       </p>
       {p.alias.length > 0 && (
         <p className="menu-alias">

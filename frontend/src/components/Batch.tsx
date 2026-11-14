@@ -14,11 +14,11 @@ export function PilihBatch({ ringkas }: { ringkas?: boolean }) {
   if (batches.length === 0) {
     return (
       <Kaca className="kartu">
-        <Kosong ikon="kalender" judul="Belum ada PO">
-          <p>Buat PO dulu, misalnya "PO Jumat". Semua pesanan dari chat akan masuk ke PO ini.</p>
-          <Tombol varian="utama" ikon="tambah" besar onClick={() => setBuatBuka(true)}>
-            Buat PO baru
-          </Tombol>
+        <Kosong ikon="kalender" judul="Belum ada pesanan">
+          <p>Masukkan chat WhatsApp. Pesanan dikelompokkan per hari secara otomatis.</p>
+          <a href="#/masukkan-chat" className="tombol tombol-utama tombol-besar">
+            <Icon nama="impor" /> Masukkan chat
+          </a>
         </Kosong>
         <BuatBatch buka={buatBuka} tutup={() => setBuatBuka(false)} />
       </Kaca>
@@ -28,7 +28,7 @@ export function PilihBatch({ ringkas }: { ringkas?: boolean }) {
   return (
     <Kaca className={`kartu pilih-batch ${ringkas ? "ringkas" : ""}`}>
       <label htmlFor={id} className="label-kecil">
-        <Icon nama="kalender" ukuran={18} /> PO yang sedang dikerjakan
+        <Icon nama="kalender" ukuran={18} /> Hari yang ditampilkan
       </label>
       <div className="pilih-batch-baris">
         <div className="pilih-wrap">
@@ -41,7 +41,7 @@ export function PilihBatch({ ringkas }: { ringkas?: boolean }) {
           </select>
           <Icon nama="bawah" className="pilih-panah" />
         </div>
-        <Tombol ikon="tambah" onClick={() => setBuatBuka(true)} aria-label="Buat PO baru" className="tombol-ikon-teks">
+        <Tombol ikon="tambah" onClick={() => setBuatBuka(true)} aria-label="Buat kelompok pesanan manual" className="tombol-ikon-teks">
           Baru
         </Tombol>
       </div>
@@ -66,7 +66,7 @@ export function BuatBatch({ buka, tutup }: { buka: boolean; tutup: () => void })
   async function simpan(e: FormEvent) {
     e.preventDefault();
     if (mulai && kirim && mulai > kirim) {
-      setGalat("Tanggal buka PO tidak boleh setelah tanggal kirim.");
+      setGalat("Tanggal mulai tidak boleh setelah tanggal kirim.");
       return;
     }
     setJalan(true);
@@ -75,25 +75,25 @@ export function BuatBatch({ buka, tutup }: { buka: boolean; tutup: () => void })
       const b = await api.buatBatch({ nama: nama.trim(), tanggal_kirim: kirim, tanggal_mulai: mulai || null });
       await muatBatch();
       pilihBatch(b.id);
-      toast(`PO "${b.nama}" dibuat.`);
+      toast(`Kelompok "${b.nama}" dibuat.`);
       setNama("");
       tutup();
     } catch (err) {
-      setGalat(err instanceof ApiError ? err.message : "Gagal membuat PO.");
+      setGalat(err instanceof ApiError ? err.message : "Gagal membuat kelompok pesanan.");
     } finally {
       setJalan(false);
     }
   }
 
   return (
-    <Dialog buka={buka} tutup={tutup} judul="Buat PO baru" lembar>
+    <Dialog buka={buka} tutup={tutup} judul="Buat kelompok pesanan manual" lembar>
       <form onSubmit={simpan} className="formulir">
         <div className="isian">
-          <label htmlFor="nama-po">Nama PO</label>
-          <input id="nama-po" value={nama} onChange={(e) => setNama(e.target.value)} placeholder="mis. PO Jumat" required maxLength={120} />
+          <label htmlFor="nama-po">Nama kelompok</label>
+          <input id="nama-po" value={nama} onChange={(e) => setNama(e.target.value)} placeholder="mis. Pesanan Jumat" required maxLength={120} />
         </div>
         <div className="isian">
-          <label htmlFor="mulai-po">Tanggal PO dibuka di grup</label>
+          <label htmlFor="mulai-po">Tanggal mulai chat</label>
           <input id="mulai-po" type="date" value={mulai} onChange={(e) => setMulai(e.target.value)} aria-describedby="mulai-bantu" />
           <p id="mulai-bantu" className="bantu">Chat sebelum tanggal ini tidak ikut dibaca.</p>
         </div>
