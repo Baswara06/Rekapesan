@@ -1,6 +1,7 @@
 """Uji alur impor ujung ke ujung dengan ekstraktor tiruan (tanpa LLM)."""
 
 import asyncio
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -182,6 +183,14 @@ def test_stok_dihitung_lintas_pesanan_dalam_satu_impor(db, katalog, batch):
 def test_saringan_tanggal_mulai_batch(db, katalog, batch):
     teks = "10/11/26 09.00 - Bu Rina: PO minggu lalu ayam 9\n12/11/26 09.15 - Bu Rina: ayam bakar 2\n"
     assert jalankan(db, teks, Tiruan({"Bu Rina": Extraction(intent="bukan_pesanan")})).pesan_baru == 1
+
+
+def test_pesan_sesudah_tanggal_kirim_dibuang(db, katalog, batch):
+    # Batch b-1 dikirim 13/11. Pesan 14/11 milik PO berikutnya dan tidak boleh menimpa pesanan ini.
+    teks = "12/11/26 09.15 - Bu Rina: ayam bakar 2\n13/11/26 07.00 - Bu Rina: udah sampe ya\n14/11/26 09.00 - Bu Rina: PO besok ayam 9\n"
+    hasil = jalankan(db, teks, Tiruan({"Bu Rina": Extraction(intent="bukan_pesanan")}))
+    assert hasil.pesan_baru == 2
+    assert all(m.waktu.date() <= date(2026, 11, 13) for m in db.scalars(select(MessageRow)))
 
 
 def test_galat_batch_dan_format(db, katalog, batch):
