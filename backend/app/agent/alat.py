@@ -68,9 +68,12 @@ def rekap_produksi(db: Session, batch_id: str, jam: str | None = None) -> dict[s
                 qty[it.product_id] = qty.get(it.product_id, 0) + it.qty
     nama = {p.id: p.nama for p in db.scalars(select(Product).where(Product.id.in_(qty)))} if qty else {}
     produksi = sorted(({"menu": nama[pid], "porsi": n} for pid, n in qty.items() if pid in nama), key=lambda r: r["menu"])
-    menunggu = db.scalar(
-        select(func.count()).select_from(Order).where(Order.batch_id == batch_id, Order.status == STATUS_PERLU_CEK)
-    )
+    # Pesanan yang menunggu dihitung dengan saringan jam yang sama, kalau tidak agen salah menyebut
+    # jumlah seluruh batch sebagai jumlah untuk jam itu.
+    antre = select(func.count()).select_from(Order).where(Order.batch_id == batch_id, Order.status == STATUS_PERLU_CEK)
+    if jam_norm is not None:
+        antre = antre.where(Order.jam_kirim == jam_norm)
+    menunggu = db.scalar(antre)
     return {
         "jam": jam_norm,
         "produksi": produksi,
