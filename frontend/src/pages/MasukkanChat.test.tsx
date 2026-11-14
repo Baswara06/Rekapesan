@@ -73,7 +73,7 @@ describe("wizard Masukkan chat", () => {
     // Penjual mengoreksi harga menu baru sebelum disimpan.
     fireEvent.change(screen.getByLabelText("Harga (Rp) untuk Nasi Ayam Bawang Putih"), { target: { value: "18000" } });
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Simpan 1 menu baru" }));
+      fireEvent.click(screen.getByRole("button", { name: "Simpan menu & lanjut" }));
     });
 
     await screen.findByRole("button", { name: "Proses chat" });
@@ -110,12 +110,34 @@ describe("wizard Masukkan chat", () => {
     // Menu kosong tidak membuat buntu: penjual bisa menambah menu atau lanjut.
     expect(await screen.findByRole("button", { name: "Tambah menu" })).toBeTruthy();
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Menu sudah benar, lanjut" }));
+      fireEvent.click(screen.getByRole("button", { name: "Simpan menu & lanjut" }));
     });
     expect(panggilan("POST", "/api/products")).toHaveLength(0);
     await act(async () => {
       fireEvent.click(await screen.findByRole("button", { name: "Proses chat" }));
     });
     expect(await screen.findByRole("link", { name: "Buka Katalog" })).toBeTruthy();
+  });
+});
+
+describe("wizard: centang menu", () => {
+  it("menu yang centangnya dihapus tidak disimpan", async () => {
+    render(
+      <AppProvider>
+        <MasukkanChat />
+      </AppProvider>,
+    );
+    fireEvent.change(screen.getByLabelText("Tempel chat grup di sini"), { target: { value: "chat" } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Lanjut" }));
+    });
+    const centang = await screen.findByRole("checkbox", { name: "Simpan Nasi Ayam Bawang Putih ke Katalog" });
+    expect((centang as HTMLInputElement).checked).toBe(true);
+    fireEvent.click(centang);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Simpan menu & lanjut" }));
+    });
+    await screen.findByRole("button", { name: "Proses chat" });
+    expect(panggilan("POST", "/api/products")).toHaveLength(0);
   });
 });

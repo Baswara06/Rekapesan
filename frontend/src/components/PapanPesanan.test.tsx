@@ -89,11 +89,11 @@ describe("papan pesanan", () => {
     tampil();
     expect(screen.getByText("Minggu, 15 Nov")).toBeTruthy();
     expect(screen.getByText("Kirim 11:30")).toBeTruthy();
-    expect(screen.getByText("Jam belum ada")).toBeTruthy();
     const wulan = within(kartu("Bu Wulan"));
     expect(wulan.getByText("Perlu dicek")).toBeTruthy();
     expect(wulan.getByText("Belum bayar")).toBeTruthy();
     expect(wulan.getByText("Alamat belum ada", { selector: "strong" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("tab", { name: /Riwayat/ }));
     const sari = within(kartu("Mbak Sari"));
     expect(sari.getByText("Selesai")).toBeTruthy();
     expect(sari.getByText("Lunas")).toBeTruthy();
@@ -133,5 +133,20 @@ describe("papan pesanan", () => {
     await waitFor(() => expect(panggilan()).toContain("PATCH /api/orders/o2"));
     const patch = fetchMock.mock.calls.find(([u, init]) => String(u).endsWith("/orders/o2") && init?.method === "PATCH");
     expect(JSON.parse(String(patch?.[1]?.body))).toEqual({ status: "dikirim" });
+  });
+});
+
+describe("tab papan", () => {
+  it("memisahkan Perlu diproses dan Riwayat dengan jumlah di label", () => {
+    tampil();
+    const proses = screen.getByRole("tab", { name: /Perlu diproses \(2\)/ });
+    expect(proses.getAttribute("aria-selected")).toBe("true");
+    expect(screen.queryByRole("article", { name: "Pesanan Mbak Sari" })).toBeNull();
+    // Jam null hanya berisi pesanan selesai+lunas, jadi tersembunyi di tab Perlu diproses.
+    expect(screen.queryByText("Jam belum ada")).toBeNull();
+    fireEvent.click(screen.getByRole("tab", { name: /Riwayat \(1\)/ }));
+    expect(kartu("Mbak Sari")).toBeTruthy();
+    expect(screen.queryByRole("article", { name: "Pesanan Bu Wulan" })).toBeNull();
+    expect(screen.getByText("Jam belum ada")).toBeTruthy();
   });
 });

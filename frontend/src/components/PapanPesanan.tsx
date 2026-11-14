@@ -71,6 +71,16 @@ export function RingkasanKeseluruhan({ data }: { data: Ringkasan["keseluruhan"] 
   );
 }
 
+export type TabPapan = "proses" | "riwayat";
+const LABEL_TAB: Record<TabPapan, string> = { proses: "Perlu diproses", riwayat: "Riwayat" };
+
+/** "Perlu diproses": perlu dicek, diproses, atau selesai tapi belum bayar. "Riwayat": selesai dan lunas, atau batal. */
+export function tabPesanan(o: PesananPapan): TabPapan {
+  if (o.status_papan === "batal") return "riwayat";
+  if (o.status_papan === "selesai") return o.bayar === "lunas" ? "riwayat" : "proses";
+  return "proses";
+}
+
 type AksiTunda = { judul: string; pesan: string; labelYa: string; jalan: () => Promise<unknown> } | null;
 
 export function PapanPesanan({ data, saatBerubah }: { data: Ringkasan; saatBerubah: () => void }) {
@@ -111,10 +121,43 @@ export function PapanPesanan({ data, saatBerubah }: { data: Ringkasan; saatBerub
     });
   }
 
-  const hari = data.hari.filter((h) => h.jam.some((j) => j.pesanan.length > 0));
+  const [tab, setTab] = useState<TabPapan>("proses");
+  // Pemisahan tab di FE dari data /ringkasan yang sama. Hari/jam yang kosong di tab aktif disembunyikan.
+  const saring = (t: TabPapan) =>
+    data.hari
+      .map((h) => ({
+        ...h,
+        jam: h.jam.map((j) => ({ ...j, pesanan: j.pesanan.filter((o) => tabPesanan(o) === t) })).filter((j) => j.pesanan.length > 0),
+      }))
+      .filter((h) => h.jam.length > 0);
+  const perTab = { proses: saring("proses"), riwayat: saring("riwayat") };
+  const hitung = (t: TabPapan) => perTab[t].reduce((a, h) => a + h.jam.reduce((b, j) => b + j.pesanan.length, 0), 0);
+  const hari = perTab[tab];
 
   return (
     <div className="tumpuk papan">
+      <div className="segmen" role="tablist" aria-label="Kelompok pesanan">
+        {(["proses", "riwayat"] as const).map((t) => (
+          <button
+            key={t}
+            role="tab"
+            type="button"
+            id={`tab-papan-${t}`}
+            aria-selected={tab === t}
+            aria-controls="panel-papan"
+            className={tab === t ? "aktif" : ""}
+            onClick={() => setTab(t)}
+          >
+            <Icon nama={t === "proses" ? "jam" : "centang"} /> {LABEL_TAB[t]} ({hitung(t)})
+          </button>
+        ))}
+      </div>
+      <div id="panel-papan" role="tabpanel" aria-labelledby={`tab-papan-${tab}`} className="tumpuk">
+      {hari.length === 0 && (
+        <p className="redup kecil">
+          {tab === "proses" ? "Tidak ada pesanan yang perlu diproses. Semua beres." : "Belum ada pesanan yang selesai dan lunas."}
+        </p>
+      )}
       {hari.map((h) => {
         const jumlah = h.jam.reduce((a, j) => a + j.pesanan.length, 0);
         return (
@@ -149,6 +192,7 @@ export function PapanPesanan({ data, saatBerubah }: { data: Ringkasan; saatBerub
           </section>
         );
       })}
+      </div>
       <Konfirmasi
         buka={!!tunda}
         tutup={() => setTunda(null)}

@@ -3900,3 +3900,19 @@ main[tabindex="-1"]:focus {
 .wizard-menu-baru input {
   min-height: 44px;
 }
+.wizard-centang {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  font-weight: 600;
+}
+.wizard-centang input {
+  width: 1.4rem;
+  height: 1.4rem;
+  accent-color: var(--tool);
+}
+.wizard-menu-baru.tidak-dipilih {
+  border-style: dashed;
+  opacity: 0.75;
+}

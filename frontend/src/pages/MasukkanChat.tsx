@@ -15,7 +15,7 @@ import { useApp } from "../lib/store";
 const MAKS_BYTE = 20 * 1024 * 1024;
 const LANGKAH = ["Masukkan chat", "Cek menu", "Proses pesanan"] as const;
 
-type BarisMenu = { nama: string; harga: string; sudahAda: boolean };
+type BarisMenu = { nama: string; harga: string; sudahAda: boolean; dipilih: boolean };
 
 function jadiGalat(e: unknown): ApiError {
   return e instanceof ApiError ? e : new ApiError(0, "galat", String(e));
@@ -58,7 +58,7 @@ export default function MasukkanChat() {
     try {
       const p = await api.pratinjauImpor(isi);
       setPratinjau(p);
-      setMenu(p.menu.map((m) => ({ nama: m.nama, harga: m.harga != null ? String(m.harga) : "", sudahAda: m.sudah_ada })));
+      setMenu(p.menu.map((m) => ({ nama: m.nama, harga: m.harga != null ? String(m.harga) : "", sudahAda: m.sudah_ada, dipilih: true })));
       setMenuTersimpan(false);
       setLangkah(1);
     } catch (e) {
@@ -68,7 +68,8 @@ export default function MasukkanChat() {
     }
   }
 
-  const menuBaru = menu.filter((m) => !m.sudahAda);
+  // Menu terdeteksi sudah tercentang. Hanya menu baru yang dicentang yang disimpan dan wajib punya harga.
+  const menuBaru = menu.filter((m) => !m.sudahAda && m.dipilih);
   const hargaValid = (h: string) => /^\d+$/.test(h) && Number(h) > 0;
   const menuBaruValid = menuBaru.every((m) => m.nama.trim() && hargaValid(m.harga));
 
@@ -78,7 +79,7 @@ export default function MasukkanChat() {
     try {
       let n = 0;
       for (const [i, m] of menu.entries()) {
-        if (m.sudahAda) continue;
+        if (m.sudahAda || !m.dipilih) continue;
         await api.buatMenu({ nama: m.nama.trim(), alias: [], harga: Number(m.harga), stok_harian: null, aktif: true, resep: [] });
         // Tandai tersimpan satu per satu supaya "Coba lagi" setelah galat tidak membuat menu dobel.
         ubahMenu(i, { sudahAda: true });
@@ -243,7 +244,11 @@ export default function MasukkanChat() {
                       </span>
                     </li>
                   ) : (
-                    <li key={i} className="wizard-menu-baru">
+                    <li key={i} className={`wizard-menu-baru${m.dipilih ? "" : " tidak-dipilih"}`}>
+                      <label className="wizard-centang">
+                        <input type="checkbox" checked={m.dipilih} onChange={(e) => ubahMenu(i, { dipilih: e.target.checked })} />
+                        <span>Simpan {m.nama || "menu ini"} ke Katalog</span>
+                      </label>
                       <div className="isian">
                         <label htmlFor={`menu-nama-${i}`}>Nama menu</label>
                         <input id={`menu-nama-${i}`} value={m.nama} onChange={(e) => ubahMenu(i, { nama: e.target.value })} />
@@ -254,7 +259,7 @@ export default function MasukkanChat() {
                           id={`menu-harga-${i}`}
                           inputMode="numeric"
                           value={m.harga}
-                          aria-invalid={!hargaValid(m.harga) || undefined}
+                          aria-invalid={(m.dipilih && !hargaValid(m.harga)) || undefined}
                           onChange={(e) => ubahMenu(i, { harga: e.target.value.replace(/\D/g, "") })}
                         />
                       </div>
@@ -266,16 +271,16 @@ export default function MasukkanChat() {
                 )}
               </ul>
             )}
-            <Tombol className="tombol-papan" varian="hantu" ikon="tambah" onClick={() => setMenu((lama) => [...lama, { nama: "", harga: "", sudahAda: false }])}>
+            <Tombol className="tombol-papan" varian="hantu" ikon="tambah" onClick={() => setMenu((lama) => [...lama, { nama: "", harga: "", sudahAda: false, dipilih: true }])}>
               Tambah menu
             </Tombol>
-            {!menuBaruValid && <p className="bantu teks-kuning">Isi nama dan harga (angka lebih dari 0) untuk setiap menu baru.</p>}
+            {!menuBaruValid && <p className="bantu teks-kuning">Isi nama dan harga (angka lebih dari 0) untuk setiap menu yang dicentang, atau hapus centangnya.</p>}
             <div className="baris-tombol">
               <Tombol className="tombol-papan" ikon="kiri" disabled={jalan} onClick={() => setLangkah(0)}>
                 Kembali
               </Tombol>
               <Tombol className="tombol-papan" varian="utama" ikon="centang" memuat={jalan} disabled={!menuBaruValid} onClick={simpanMenu}>
-                {menuBaru.length ? `Simpan ${menuBaru.length} menu baru` : "Menu sudah benar, lanjut"}
+                Simpan menu & lanjut
               </Tombol>
             </div>
           </Kaca>
