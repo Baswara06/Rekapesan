@@ -11,6 +11,8 @@ import zipfile
 from datetime import date, datetime
 from typing import IO
 
+from pydantic import BaseModel
+
 from app.schemas import Message
 
 MAKS_UKURAN_BYTE = 20 * 1024 * 1024
@@ -225,3 +227,73 @@ def saring_baru(pesan: list[Message], sidik_ada: set[str]) -> list[Message]:
 def parse_export(file_or_text: IO[bytes] | bytes | str, batch_date: date | None) -> list[Message]:
     """Pecah ekspor WhatsApp (.txt/.zip atau teks tempel) menjadi pesan, sudah disaring dan diberi sidik."""
     return saring_tanggal(pecah_pesan(baca_teks(file_or_text)), batch_date)
+
+
+# --- Lampiran foto di ekspor "dengan media" (.zip) -------------------------------------------
+# Tidak mengubah `parse_export`: daftar ini dipakai terpisah untuk membaca bukti transfer.
+
+_FOTO_ANDROID = re.compile(r"([\w\-. ]+\.(?:jpe?g|png|webp))\s*\((?:file terlampir|file attached)\)", re.I)
+_FOTO_IPHONE = re.compile(r"<attached:\s*([^<>\n]+\.(?:jpe?g|png|webp))\s*>", re.I)
+
+
+class Lampiran(BaseModel):
+    """Satu foto yang dikirim di chat: siapa, kapan, dan nama berkasnya di dalam .zip."""
+
+    waktu: datetime
+    pengirim: str
+    berkas: str
+
+
+def lampiran_foto(data: bytes) -> list[Lampiran]:
+    """Foto yang dirujuk di teks ekspor .zip. Bukan .zip (teks tempel/.txt) berarti tidak ada foto."""
+    if not isinstance(data, (bytes, bytearray)) or not zipfile.is_zipfile(io.BytesIO(data)):
+        return []
+    teks = baca_teks(bytes(data))
+    hasil: list[Lampiran] = []
+    for baris in teks.replace("\r\n", "\n").replace("\r", "\n").split("\n"):
+        kepala = _baca_kepala(baris)
+        if not kepala:
+            continue
+        waktu, sisa = kepala
+        m = _PENGIRIM.match(sisa)
+        if not m or not m.group(2):
+            continue
+        pengirim = m.group(1).strip(_TAK_TERLIHAT + " ")
+        isi = _SEMUA_TAK_TERLIHAT.sub("", m.group(2))
+        for cocok in (*_FOTO_ANDROID.finditer(isi), *_FOTO_IPHONE.finditer(isi)):
+            hasil.append(Lampiran(waktu=waktu, pengirim=pengirim, berkas=cocok.group(1).strip()))
+    return hasil
+
+
+def baca_berkas_zip(data: bytes, nama: str, batas: int = 5 * 1024 * 1024) -> bytes | None:
+    """Isi satu berkas di dalam .zip (dicocokkan dengan nama dasar), atau None bila tidak ada/terlalu besar."""
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as arsip:
+            for info in arsip.infolist():
+                if info.filename.rsplit("/", 1)[-1] == nama and not info.is_dir():
+                    return arsip.read(info) if info.file_size <= batas else None
+    except zipfile.BadZipFile:
+        return None
+    return None
+
+
+def ukuran_gambar(data: bytes) -> tuple[int, int] | None:
+    """(lebar, tinggi) dari header JPEG/PNG tanpa pustaka gambar. None bila tidak dikenali."""
+    if data[:8] == b"\x89PNG\r\n\x1a\n" and len(data) >= 24:
+        return int.from_bytes(data[16:20], "big"), int.from_bytes(data[20:24], "big")
+    if data[:2] != b"\xff\xd8":
+        return None
+    i = 2
+    while i + 9 < len(data):
+        if data[i] != 0xFF:
+            i += 1
+            continue
+        penanda = data[i + 1]
+        if penanda in (0xD8, 0x01) or 0xD0 <= penanda <= 0xD7:
+            i += 2
+            continue
+        panjang = int.from_bytes(data[i + 2 : i + 4], "big")
+        if penanda in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
+            return int.from_bytes(data[i + 7 : i + 9], "big"), int.from_bytes(data[i + 5 : i + 7], "big")
+        i += 2 + panjang
+    return None

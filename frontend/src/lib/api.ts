@@ -75,6 +75,8 @@ export interface PratinjauImpor {
   menu: MenuTerdeteksi[];
   /** Tebakan kode dari pesan pembeli: disebut tapi tidak ada di daftar menu penjual maupun katalog. Tanpa harga. */
   menu_dari_pembeli?: { nama: string; jumlah_sebut: number; contoh: string }[];
+  /** Semua pengirim di chat, terbanyak dulu. Dipakai memilih penjual bila tidak terdeteksi. */
+  pengirim?: string[];
 }
 
 export interface HasilImporHari extends ImportResult {
@@ -86,13 +88,16 @@ export interface HasilImporHari extends ImportResult {
 export interface HasilImporHarian {
   hari: HasilImporHari[];
   total: ImportResult;
+  /** Jumlah foto bukti transfer yang terbaca (hanya bila diminta dan berkasnya .zip dengan media). */
+  bukti_terbaca?: number;
 }
 
 export type StatusPapan = "perlu_cek" | "diproses" | "selesai" | "batal";
 export type StatusBayar = "lunas" | "belum";
 
 export interface SaranPesanan {
-  jenis: "sudah_bayar" | "sudah_terima";
+  /** `bukti_transfer`: foto bukti dibaca model saat impor. `bayar_dobel`: informasi saja, tanpa tombol. */
+  jenis: "sudah_bayar" | "sudah_terima" | "bukti_transfer" | "bayar_dobel";
   teks: string;
   kutipan: string | null;
 }
@@ -371,7 +376,13 @@ export const api = {
     minta<{ order_id: string; status: StatusPesanan }>(`/orders/${orderId}/payment-confirm`, { method: "POST" }),
 
   pratinjauImpor: (isi: IsiChat) => minta<PratinjauImpor>("/impor/pratinjau", { method: "POST", body: bodyChat(isi) }),
-  imporHarian: (isi: IsiChat) => minta<HasilImporHarian>("/impor", { method: "POST", body: bodyChat(isi) }),
+  imporHarian: (isi: IsiChat, opsi: { bacaBukti?: boolean; penjual?: string | null } = {}) => {
+    const q = new URLSearchParams();
+    if (opsi.bacaBukti) q.set("baca_bukti", "true");
+    if (opsi.penjual) q.set("penjual", opsi.penjual);
+    const s = q.toString();
+    return minta<HasilImporHarian>(`/impor${s ? `?${s}` : ""}`, { method: "POST", body: bodyChat(isi) });
+  },
   ringkasan: () => minta<Ringkasan>("/ringkasan"),
 
   /** Tanpa `batchId`: agen membaca semua hari milik akun. */

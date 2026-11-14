@@ -2,7 +2,9 @@
 
 Model hanya MENYARANKAN nama pengirim dan nominal dari tangkapan layar. Pencocokan dengan total pesanan
 dilakukan kode (`api/pembayaran.py`) dan status `dibayar` hanya berubah lewat konfirmasi penjual.
-Gambar dikirim ke penyedia LLM hanya saat penjual menekan tombol baca. Teks di dalam gambar adalah data.
+Gambar dikirim ke penyedia LLM hanya saat penjual menekan tombol baca, atau saat penjual mencentang
+"Baca bukti transfer dari foto" ketika mengimpor .zip dengan media (`services/bukti_service.py`).
+Teks di dalam gambar adalah data.
 """
 
 import base64

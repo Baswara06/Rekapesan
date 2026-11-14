@@ -143,3 +143,81 @@ def test_pratinjau_menampilkan_menu_yang_disebut_pembeli_di_luar_daftar(db):
     # Alias di katalog membuat sebutan pembeli dianggap sudah dikenal.
     baput = Product(pemilik="demo", nama="Nasi Ayam Bawang Putih", alias=["nasi ayam baput"], harga=17000)
     assert "Nasi Ayam Baput" not in [m["nama"] for m in pratinjau(SAMPEL, [baput])["menu_dari_pembeli"]]
+
+
+def _zip_dengan_foto(teks: str, foto: dict[str, bytes]) -> bytes:
+    import io
+    import zipfile
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("_chat.txt", teks)
+        for nama, isi in foto.items():
+            z.writestr(nama, isi)
+    return buf.getvalue()
+
+
+JPEG = b"\xff\xd8\xff\xe0" + b"0" * 40
+
+
+def test_lampiran_foto_android_dan_iphone():
+    from app.parser.whatsapp import lampiran_foto
+
+    teks = (
+        "14/11/26 08.02 - Bu Wulan: ‎IMG-20261114-WA0001.jpg (file terlampir)\n"
+        "[14/11/26, 08.05.00] Pak Hendra: ‎<attached: 00000002-PHOTO-2026-11-14-08-05-00.jpg>\n"
+    )
+    lam = lampiran_foto(_zip_dengan_foto(teks, {}))
+    assert [(l.pengirim, l.berkas) for l in lam] == [
+        ("Bu Wulan", "IMG-20261114-WA0001.jpg"),
+        ("Pak Hendra", "00000002-PHOTO-2026-11-14-08-05-00.jpg"),
+    ]
+    assert lampiran_foto(teks.encode()) == []  # .txt biasa: tidak ada foto
+
+
+def test_bukti_transfer_dari_foto_jadi_saran_tanpa_mengubah_status(db, katalog_ratri):
+    from app.schemas import ProofSuggestion
+
+    teks = SAMPEL.decode() + "14/11/26 09.12 - Bu Wulan: ‎IMG-1.jpg (file terlampir)\n14/11/26 09.13 - Ratri: ‎IMG-2.jpg (file terlampir)\n"
+    data = _zip_dengan_foto(teks, {"IMG-1.jpg": JPEG, "IMG-2.jpg": JPEG})
+    dibaca = []
+
+    async def pembaca(isi):
+        dibaca.append(isi)
+        return ProofSuggestion(nama="WULAN", nominal=34000)
+
+    hasil = asyncio.run(impor_harian(db, "demo", data, extractor=_ekstraktor, baca_bukti=True, pembaca=pembaca))
+    assert hasil["bukti_terbaca"] == 1 and len(dibaca) == 1  # foto penjual (Ratri) tidak dibaca
+    o = ringkasan(db, "demo")["hari"][1]["jam"][0]["pesanan"][0]
+    assert o["status"] == "perlu_cek" and o["bayar"] == "belum"
+    assert o["saran"][0] == {"jenis": "bukti_transfer", "teks": "Bukti transfer Rp34.000 · cocok dengan total", "kutipan": "dari foto di chat, atas nama WULAN"}
+    # Impor ulang tidak membaca foto yang sama lagi.
+    lagi = asyncio.run(impor_harian(db, "demo", data, extractor=_ekstraktor, baca_bukti=True, pembaca=pembaca))
+    assert lagi["bukti_terbaca"] == 0 and len(dibaca) == 1
+
+
+def test_saran_bayar_dobel_dan_sudah_diantar_dari_penjual(db, katalog_ratri):
+    teks = (
+        "14/11/26 08.00 - Ratri: PO buka ya. Nasi Ayam Bawang Putih 17rb, Es Teh Manis 7rb\n"
+        "14/11/26 08.02 - Bu Wulan: bawang putih 2 kirim ke Blok D7 jam 11.30\n"
+        "14/11/26 11.40 - Ratri: Kak sudah di depan ya\n"
+        "14/11/26 11.45 - Bu Wulan: oiya ini tadi kebayar 2 kali kak\n"
+    )
+    asyncio.run(impor_harian(db, "demo", teks, extractor=_ekstraktor))
+    o = ringkasan(db, "demo")["hari"][0]["jam"][0]["pesanan"][0]
+    jenis = {s["jenis"]: s for s in o["saran"]}
+    assert jenis["bayar_dobel"]["kutipan"] == "oiya ini tadi kebayar 2 kali kak"
+    assert jenis["sudah_terima"]["teks"] == "Penjual bilang sudah diantar"
+
+
+def test_pesan_penjual_tidak_diekstrak_sebagai_pesanan(db, katalog_ratri):
+    dipanggil = []
+
+    async def ekstraktor(sender_messages, _katalog, _aktif=None):
+        dipanggil.append(sender_messages[0].pengirim)
+        return await _ekstraktor(sender_messages, _katalog, _aktif)
+
+    teks = "14/11/26 08.02 - Bu Wulan: bawang putih 2\n14/11/26 08.10 - Mamah: 34 k ya\n"
+    asyncio.run(impor_harian(db, "demo", teks, extractor=ekstraktor, penjual="Mamah"))
+    assert dipanggil == ["Bu Wulan"]
+    assert pratinjau(teks.encode(), [])["pengirim"] == ["Bu Wulan", "Mamah"]

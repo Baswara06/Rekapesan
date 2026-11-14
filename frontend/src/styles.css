@@ -4213,3 +4213,22 @@ main[tabindex="-1"]:focus {
   gap: 0.3rem;
   margin: 0;
 }
+.wizard-bukti {
+  align-items: flex-start;
+  padding: 0.7rem;
+  border-radius: var(--r-sm);
+  background: var(--field);
+}
+.wizard-bukti > span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.blok {
+  display: block;
+  margin-top: 0.2rem;
+}
+#pilih-penjual {
+  min-height: 44px;
+  max-width: 100%;
+}

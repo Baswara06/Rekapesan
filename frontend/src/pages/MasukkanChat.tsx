@@ -29,6 +29,11 @@ export default function MasukkanChat() {
   const [mode, setMode] = useState<"tempel" | "berkas">("tempel");
   const [teks, setTeks] = useState("");
   const [berkas, setBerkas] = useState<File | null>(null);
+  // Foto di .zip "dengan media" bisa dibaca sebagai bukti transfer. Gambar dikirim ke AI, jadi penjual memilih sendiri.
+  const [bacaBukti, setBacaBukti] = useState(true);
+  // Penjual di chat: pesannya tidak dibaca sebagai pesanan. Terdeteksi otomatis bila memposting daftar menu.
+  const [penjual, setPenjual] = useState<string>("");
+  const adaFoto = mode === "berkas" && !!berkas && berkas.name.toLowerCase().endsWith(".zip");
   const [pratinjau, setPratinjau] = useState<PratinjauImpor | null>(null);
   const [menu, setMenu] = useState<BarisMenu[]>([]);
   const [menuTersimpan, setMenuTersimpan] = useState(false);
@@ -60,6 +65,7 @@ export default function MasukkanChat() {
     try {
       const p = await api.pratinjauImpor(isi);
       setPratinjau(p);
+      setPenjual(p.penjual ?? "");
       setMenu([
         ...p.menu.map((m) => ({ nama: m.nama, harga: m.harga != null ? String(m.harga) : "", sudahAda: m.sudah_ada, dipilih: true })),
         ...(p.menu_dari_pembeli ?? []).map((m) => ({
@@ -114,7 +120,7 @@ export default function MasukkanChat() {
     setJalan(true);
     setGalat(null);
     try {
-      const r = await api.imporHarian(isi);
+      const r = await api.imporHarian(isi, { bacaBukti: adaFoto && bacaBukti, penjual: penjual || null });
       setHasil(r);
       await muatBatch();
       dataBerubah();
@@ -214,8 +220,26 @@ export default function MasukkanChat() {
           <Kaca className="kartu">
             <h2>Yang terbaca dari chat</h2>
             <dl className="dl-rapi">
-              <dt>Penjual</dt>
-              <dd>{pratinjau.penjual ?? "Belum terdeteksi"}</dd>
+              <dt>
+                <label htmlFor="pilih-penjual">Penjual</label>
+              </dt>
+              <dd>
+                {(pratinjau.pengirim ?? []).length > 0 ? (
+                  <select id="pilih-penjual" value={penjual} onChange={(e) => setPenjual(e.target.value)} aria-describedby="bantu-penjual">
+                    <option value="">{pratinjau.penjual ? "Pilih penjual" : "Belum terdeteksi, pilih di sini"}</option>
+                    {(pratinjau.pengirim ?? []).map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  (pratinjau.penjual ?? "Belum terdeteksi")
+                )}
+                <span id="bantu-penjual" className="redup kecil blok">
+                  Pesan penjual tidak dibaca sebagai pesanan.
+                </span>
+              </dd>
               <dt>Tanggal</dt>
               <dd>
                 {pratinjau.tanggal_awal ? tanggalPanjang(pratinjau.tanggal_awal) : "-"}
@@ -320,6 +344,17 @@ export default function MasukkanChat() {
               <p>
                 {menuTersimpan ? "Menu siap. " : ""}AI akan membaca chat per hari dan menyusun pesanan. Harga dan total dihitung dari Katalog Anda.
               </p>
+              {adaFoto && (
+                <label className="wizard-centang wizard-bukti">
+                  <input type="checkbox" checked={bacaBukti} disabled={jalan} onChange={(e) => setBacaBukti(e.target.checked)} />
+                  <span>
+                    <strong>Baca bukti transfer dari foto</strong>
+                    <span className="redup kecil">
+                      Foto dari pembeli dikirim ke AI untuk membaca nama dan nominal transfer (maksimal 30 foto). Hasilnya hanya saran, Anda yang menandai lunas.
+                    </span>
+                  </span>
+                </label>
+              )}
               <Tombol varian="utama" besar penuh ikon="impor" memuat={jalan} onClick={proses}>
                 {jalan ? "Sedang diproses…" : "Proses chat"}
               </Tombol>
@@ -333,6 +368,7 @@ export default function MasukkanChat() {
                     <li>Menyamarkan nomor telepon</li>
                     <li>AI memahami isi pesanan (tanpa harga)</li>
                     <li>Harga dan total dihitung dari Katalog</li>
+                    {adaFoto && bacaBukti && <li>AI membaca foto bukti transfer dari pembeli</li>}
                   </ul>
                 </div>
               )}
@@ -347,6 +383,7 @@ export default function MasukkanChat() {
                   <h2>Chat berhasil dibaca</h2>
                   <p className="redup">
                     {hasil.total.pesanan_dibuat} pesanan baru, {hasil.total.perlu_cek} perlu dicek, {hasil.total.pesan_dilewati} pesan dilewati.
+                    {hasil.bukti_terbaca ? ` ${hasil.bukti_terbaca} bukti transfer terbaca dari foto, cek di papan.` : ""}
                   </p>
                 </div>
               </div>

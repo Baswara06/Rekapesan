@@ -32,7 +32,7 @@ beforeEach(() => {
     const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body });
     const metode = init?.method ?? "GET";
     if (url.endsWith("/api/impor/pratinjau") && metode === "POST") return ok(pratinjau);
-    if (url.endsWith("/api/impor") && metode === "POST") return ok(hasilImpor);
+    if (url.split("?")[0].endsWith("/api/impor") && metode === "POST") return ok(hasilImpor);
     if (url.endsWith("/api/products") && metode === "POST") return ok({ id: "p-baru", ...JSON.parse(String(init?.body)) });
     if (url.endsWith("/api/products")) return ok([]);
     if (url.endsWith("/api/batches")) return ok([]);
@@ -47,7 +47,7 @@ afterEach(() => {
 });
 
 const panggilan = (metode: string, akhir: string) =>
-  fetchMock.mock.calls.filter(([u, init]) => (init?.method ?? "GET") === metode && String(u).endsWith(akhir));
+  fetchMock.mock.calls.filter(([u, init]) => (init?.method ?? "GET") === metode && String(u).split("?")[0].endsWith(akhir));
 
 describe("wizard Masukkan chat", () => {
   it("pratinjau, lalu simpan menu hanya untuk menu baru, lalu proses impor harian", async () => {
@@ -86,6 +86,7 @@ describe("wizard Masukkan chat", () => {
     });
     await screen.findByText("Chat berhasil dibaca");
     expect(panggilan("POST", "/api/impor")).toHaveLength(1);
+    expect(String(panggilan("POST", "/api/impor")[0][0])).toContain("penjual=Ratri"); // pesan penjual tidak dibaca sebagai pesanan
     expect(screen.getByText("Sabtu, 14 Nov")).toBeTruthy();
     await waitFor(() => expect(screen.getByRole("button", { name: "Lihat papan pesanan" })).toBeTruthy());
   });
@@ -94,7 +95,7 @@ describe("wizard Masukkan chat", () => {
     fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
       const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body });
       if (url.endsWith("/api/impor/pratinjau")) return ok({ ...pratinjau, menu: [] });
-      if (url.endsWith("/api/impor") && init?.method === "POST")
+      if (url.split("?")[0].endsWith("/api/impor") && init?.method === "POST")
         return { ok: false, status: 409, json: async () => ({ error: { kode: "katalog_kosong", pesan: "Isi menu dulu." } }) };
       return ok([]);
     });
