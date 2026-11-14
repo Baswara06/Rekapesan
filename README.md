@@ -52,7 +52,7 @@ Wawancara dan pengukuran tim dengan dua penjual. Angka ditulis apa adanya, tanpa
 | --- | --- |
 | Jumlah penjual yang diwawancarai | 2 |
 | Waktu rekap manual, diukur dengan stopwatch | 45-60 menit |
-| Waktu rekap dengan Rekapesan, chat yang sama | 5-15 menit |
+| Waktu rekap dengan Rekapesan, chat yang sama, diukur dengan stopwatch | 5-15 menit |
 | Skor "mudah dipakai", "hasil bisa dipercaya", "menghemat waktu" (1-5) | 4 |
 | Fitur yang paling dibutuhkan (survei singkat lewat chat) | Rekap pesanan dan asisten AI |
 
