@@ -27,18 +27,9 @@ def _galat(status: int, kode: str, pesan: str) -> JSONResponse:
     return JSONResponse(status_code=status, content={"error": {"kode": kode, "pesan": pesan}})
 
 
-@router.post("/batches/{batch_id}/import", response_model=ImportResult)
-async def impor_chat(batch_id: str, request: Request, db: Session = Depends(get_db), pemilik: str = Depends(pemilik_aktif)):
-    try:
-        batch_milik(db, batch_id, pemilik)
-    except ApiError:
-        return _galat(404, "tidak_ditemukan", "Batch tidak ditemukan.")
-    # Akun baru belum punya menu: tanpa katalog semua pesanan jadi `item_tidak_dikenal` dan panggilan
-    # LLM terbuang. Tolak sebelum berkas dibaca supaya penjual diarahkan mengisi menu dulu.
-    if db.scalar(produk_milik(pemilik).where(Product.aktif.is_(True)).limit(1)) is None:
-        return _galat(409, "katalog_kosong", "Isi menu di Katalog dulu. Tanpa menu, pesanan tidak bisa dicocokkan dan harganya tidak bisa dihitung.")
+async def baca_badan(request: Request) -> bytes | str | JSONResponse:
+    """Isi chat dari multipart `file`/`text` atau JSON `{"text"}`. Galat dikembalikan sebagai JSONResponse."""
     data: bytes | str | None = None
-
     if "application/json" in request.headers.get("content-type", ""):
         try:
             badan = await request.json()
@@ -54,12 +45,27 @@ async def impor_chat(batch_id: str, request: Request, db: Session = Depends(get_
             data = await berkas.read(MAKS_UKURAN_BYTE + 1)
         elif isinstance(form.get("text"), str):
             data = form["text"]
-
     if not data:
         return _galat(422, "validasi_gagal", "Kirim `file` (.txt/.zip) atau `text` berisi chat.")
     ukuran = len(data) if isinstance(data, bytes) else len(data.encode("utf-8"))
     if ukuran > MAKS_UKURAN_BYTE:
         return _galat(413, "validasi_gagal", "Berkas terlalu besar (maksimal 20 MB).")
+    return data
+
+
+@router.post("/batches/{batch_id}/import", response_model=ImportResult)
+async def impor_chat(batch_id: str, request: Request, db: Session = Depends(get_db), pemilik: str = Depends(pemilik_aktif)):
+    try:
+        batch_milik(db, batch_id, pemilik)
+    except ApiError:
+        return _galat(404, "tidak_ditemukan", "Batch tidak ditemukan.")
+    # Akun baru belum punya menu: tanpa katalog semua pesanan jadi `item_tidak_dikenal` dan panggilan
+    # LLM terbuang. Tolak sebelum berkas dibaca supaya penjual diarahkan mengisi menu dulu.
+    if db.scalar(produk_milik(pemilik).where(Product.aktif.is_(True)).limit(1)) is None:
+        return _galat(409, "katalog_kosong", "Isi menu di Katalog dulu. Tanpa menu, pesanan tidak bisa dicocokkan dan harganya tidak bisa dihitung.")
+    data = await baca_badan(request)
+    if isinstance(data, JSONResponse):
+        return data
     try:
         return await import_batch(db, batch_id, data)
     except BatchTidakDitemukan:

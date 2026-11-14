@@ -95,6 +95,49 @@ Impor ulang aman: pesan yang sudah pernah masuk dilewati (`pesan_dilewati`) dan 
 
 Share target PWA: service worker menerima berkas dari menu Bagikan dan meneruskannya ke endpoint di atas (batch aktif atau batch baru yang dipilih pengguna).
 
+### Buku pesanan harian
+
+Alur utama baru: penjual cukup memasukkan chat, tanpa membuat PO dulu. Endpoint per batch di atas tetap jalan.
+
+| Method | Path | Isi |
+| --- | --- | --- |
+| POST | `/impor/pratinjau` | Body sama dengan impor. Tidak menyimpan apa pun dan tidak memanggil LLM |
+| POST | `/impor` | Body sama dengan impor. Satu batch per tanggal chat (maks 14 hari terakhir), lalu impor tiap hari |
+| GET | `/ringkasan` | Papan pesanan: keseluruhan, per hari, per jam |
+
+`/impor/pratinjau`:
+
+```json
+{ "penjual": "Ratri", "tanggal_awal": "2026-11-14", "tanggal_akhir": "2026-11-16", "jumlah_pesan": 19,
+  "hari": [{ "tanggal": "2026-11-14", "jumlah_pesan": 16 }],
+  "menu": [{ "nama": "Nasi Ayam Bawang Putih", "harga": 17000, "sudah_ada": false, "product_id": null }] }
+```
+
+Dibaca kode, bukan LLM. Pesan dianggap daftar menu bila memuat **minimal dua harga** ("17rb", "17 ribu", "17k", "17.000", "Rp17.000"), jadi pesan seperti "ubah harga jadi 1000" tidak terbaca sebagai menu. Angka di bawah 1000 tanpa "rb"/"k" dianggap jumlah. `penjual` = pengirim dengan pesan daftar menu terbanyak (bisa `null`). Menu disimpan penjual lewat `POST /products`. Harga selalu ditentukan penjual.
+
+`/impor`:
+
+```json
+{ "hari": [{ "tanggal": "2026-11-14", "batch_id": "uuid", "nama": "Sabtu, 14 Nov", "pesan_baru": 16, "pesan_dilewati": 0, "pesanan_dibuat": 7, "pesanan_diubah": 0, "perlu_cek": 3 }],
+  "total": { "pesan_baru": 16, "pesan_dilewati": 0, "pesanan_dibuat": 7, "pesanan_diubah": 0, "perlu_cek": 3 } }
+```
+
+Batch harian adalah batch biasa (`tanggal_mulai` = `tanggal_kirim` = tanggal itu), dipakai ulang bila sudah ada, jadi layar Cek, Rekap, dan agen tetap bekerja per hari. Hari baru yang tidak menghasilkan pesanan (mis. hanya obrolan penjual) tidak disimpan. Galat sama dengan impor per batch. Bila LLM gagal di tengah, hari yang sudah selesai tetap tersimpan dan impor ulang aman.
+
+`/ringkasan`:
+
+```json
+{ "keseluruhan": { "perlu_cek": 3, "diproses": 2, "selesai": 1, "batal": 1, "omzet": 150000, "belum_bayar": 85000, "jumlah_belum_bayar": 2 },
+  "hari": [{ "tanggal": "2026-11-15", "batch_id": "uuid", "nama": "Minggu, 15 Nov",
+    "jam": [{ "jam": "11:30", "pesanan": [{
+      "id": "uuid", "nama": "Bu Wulan", "status": "perlu_cek", "status_papan": "perlu_cek", "bayar": "belum",
+      "total": 48000, "jam_kirim": "11:30", "alamat": "Perum ...", "items": [{ "nama": "Nasi Ayam Bawang Putih", "qty": 2 }],
+      "tanda": [], "saran": [{ "jenis": "sudah_bayar", "teks": "Pembeli bilang sudah bayar", "kutipan": "udah transfer ya kak" }] }] },
+      { "jam": null, "pesanan": [] }] }] }
+```
+
+`status_papan`: `perlu_cek`, `diproses` (`dikonfirmasi`/`dibayar`), `selesai` (`dikirim`), `batal`. `bayar`: `lunas` bila status `dibayar` atau pelunasan sudah dikonfirmasi, selain itu `belum`. `omzet` dan `belum_bayar` hanya dari pesanan yang disetujui. `jam: null` berarti jam kirim belum ada. `saran` dibaca kode dengan kata kunci dari pesan pembeli ("udah transfer", "bukti tf", "udah sampai", "sudah diterima") dan **tidak pernah mengubah status**. Penjual yang menekan tombol (`payment-confirm` atau `PATCH status: dikirim`).
+
 ## Pesanan dan review
 
 | Method | Path | Isi |
@@ -169,7 +212,7 @@ Hanya pesanan yang sudah disetujui (`dikonfirmasi`, `dibayar`, `dikirim`) yang d
 | Method | Path | Isi |
 | --- | --- | --- |
 | POST | `/orders/{id}/payment-proof` | `multipart` gambar (`file`, maksimal 5 MB) → saran `{nama, nominal, cocok: true/false}` |
-| POST | `/orders/{id}/payment-confirm` | penjual mengonfirmasi → `{order_id, status: "dibayar"}`. Hanya untuk pesanan `dikonfirmasi`, selain itu 409 |
+| POST | `/orders/{id}/payment-confirm` | penjual mengonfirmasi lunas. Pesanan `dikonfirmasi` → `{order_id, status: "dibayar"}`. Pesanan `dikirim` (mis. COD) tetap `dikirim`, pelunasan dicatat di tabel payments sehingga `bayar` di ringkasan jadi `lunas`. Status lain 409 |
 
 Model hanya memberi saran. `cocok` dihitung kode (nominal sama dengan total pesanan). Status berubah hanya setelah `payment-confirm`. Bila pembaca gambar gagal atau belum tersedia, respons `llm_gagal` (502) dan penjual bisa langsung memakai `payment-confirm`.
 

@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from app import extractor as modul_extractor
 from app.api.kepemilikan import pastikan_order_milik, pemilik_aktif
 from app.core.errors import ApiError, validasi
-from app.db import STATUS_DIBAYAR, STATUS_DIKONFIRMASI, Order, Payment, get_db
+from app.db import STATUS_DIBAYAR, STATUS_DIKIRIM, STATUS_DIKONFIRMASI, Order, Payment, get_db
 
 router = APIRouter(prefix="/api")
 
@@ -53,16 +53,21 @@ async def bukti_bayar(
 
 @router.post("/orders/{order_id}/payment-confirm")
 def konfirmasi_bayar(order_id: str, db: Session = Depends(get_db), pemilik: str = Depends(pemilik_aktif)) -> dict[str, Any]:
-    """Penjual menyatakan pesanan sudah dibayar. Hanya untuk pesanan yang sudah disetujui."""
+    """Penjual menyatakan pesanan sudah dibayar. Untuk pesanan disetujui (jadi `dibayar`) atau yang sudah
+    dikirim tapi belum bayar, mis. COD (status tetap `dikirim`, pelunasan dicatat di tabel payments)."""
     order = _order(db, order_id, pemilik)
 
     if order.status == STATUS_DIBAYAR:
         return {"order_id": order.id, "status": order.status}
-    if order.status != STATUS_DIKONFIRMASI:
-        raise validasi("Hanya pesanan yang sudah disetujui yang bisa ditandai lunas.", status=409)
-    order.status = STATUS_DIBAYAR
+    if order.status not in (STATUS_DIKONFIRMASI, STATUS_DIKIRIM):
+        raise validasi("Hanya pesanan yang sudah disetujui atau sudah dikirim yang bisa ditandai lunas.", status=409)
+    if order.status == STATUS_DIKONFIRMASI:
+        order.status = STATUS_DIBAYAR
     terakhir = db.scalar(select(Payment).where(Payment.order_id == order.id).order_by(Payment.dibuat_pada.desc()))
     if terakhir is not None:
         terakhir.dikonfirmasi = True
+    else:
+        # Bayar tunai atau tanpa bukti: catat pelunasan sebesar total supaya status bayar tetap terbaca.
+        db.add(Payment(order_id=order.id, nominal=order.total, cocok=True, dikonfirmasi=True))
     db.commit()
     return {"order_id": order.id, "status": order.status}
