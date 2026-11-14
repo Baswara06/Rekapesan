@@ -2,7 +2,6 @@ import { Icon, type NamaIkon } from "../components/Icon";
 import { Kepala } from "../components/ui";
 
 const MENU: { href: string; ikon: NamaIkon; judul: string; isi: string }[] = [
-  { href: "#/tanya", ikon: "tanya", judul: "Tanya pesanan", isi: "Tanya AI soal rekap, siapa belum bayar, dan lainnya." },
   { href: "#/katalog", ikon: "katalog", judul: "Katalog menu", isi: "Menu, harga, stok, nama panggilan, dan resep." },
   { href: "#/pengaturan", ikon: "pengaturan", judul: "Pengaturan", isi: "Tema, privasi AI, hapus data PO, keluar." },
 ];
