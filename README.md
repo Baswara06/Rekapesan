@@ -194,8 +194,28 @@ cd frontend && npm test
 Data contoh (samaran): [`sample/ekspor-contoh.txt`](sample/ekspor-contoh.txt)
 
 ---
+## 7. Deployment
 
-## 7. Dokumentasi penggunaan AI
+Aplikasi Rekapesan telah berhasil di-deploy dan dapat diakses secara online melalui domain berikut:
+
+| Komponen | URL |
+| --- | --- |
+| Frontend (Web Application) | https://rekapesan.my.id |
+| Backend (API) | https://api.rekapesan.my.id |
+
+### Akses Aplikasi
+
+Pengguna dapat mengakses Rekapesan melalui browser tanpa perlu melakukan instalasi secara lokal.
+
+Frontend berkomunikasi dengan backend API untuk memproses data pesanan dan menjalankan fungsionalitas aplikasi.
+
+### Environment Production
+
+Konfigurasi environment untuk production dikelola melalui platform deployment. Variabel yang diperlukan disesuaikan dengan konfigurasi pada file `.env.example`.
+
+API key dan kredensial sensitif disimpan sebagai environment variables pada server dan tidak disertakan dalam repository.
+
+## 8. Dokumentasi penggunaan AI
 
 | Penggunaan | Model / alat | Bagian |
 | --- | --- | --- |
@@ -206,7 +226,7 @@ Data yang dikirim ke penyedia LLM: teks chat yang nomor teleponnya sudah disamar
 
 ---
 
-## 8. Etika dan keamanan
+## 9. Etika dan keamanan
 
 - Nomor telepon disamarkan sebelum teks dikirim ke LLM.
 - Isi chat diperlakukan sebagai data, bukan perintah (uji injeksi ada di `backend/tests`).
@@ -218,15 +238,15 @@ Data yang dikirim ke penyedia LLM: teks chat yang nomor teleponnya sudah disamar
 
 ---
 
-## 9. Hasil evaluasi
+## 10. Hasil evaluasi
 
 _Isi dari [`docs/evaluasi.md`](docs/evaluasi.md) apa adanya, termasuk angka "salah dan lolos tanpa tanda"._
 
-## 10. Batasan yang diketahui
+## 11. Batasan yang diketahui
 
 _Isi jujur. Contoh: share target tidak didukung PWA di iPhone, format ekspor diuji pada Android dan iPhone dengan bahasa tertentu saja._
 
-## 11. Atribusi
+## 12. Atribusi
 
 Sumber kutipan bukti pendukung (bagian 2), dibaca 13 November 2026:
 
