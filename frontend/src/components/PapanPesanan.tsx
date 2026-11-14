@@ -178,7 +178,11 @@ function KartuPapan({
   const bisaSelesai = o.status_papan === "diproses";
   const bisaLunas = (o.status_papan === "diproses" || o.status_papan === "selesai") && o.bayar === "belum";
   // Saran hanya ditawarkan bila memang masih relevan (belum lunas / belum selesai).
-  const saran = o.saran.filter((s) => (s.jenis === "sudah_bayar" ? o.bayar === "belum" : o.status_papan !== "selesai"));
+  // Pesanan batal tidak menawarkan saran sama sekali.
+  const saran =
+    o.status_papan === "batal"
+      ? []
+      : o.saran.filter((s) => (s.jenis === "sudah_bayar" ? o.bayar === "belum" : o.status_papan !== "selesai"));
   const tanda = o.tanda.filter((k) => k in TANDA);
 
   return (

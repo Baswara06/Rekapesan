@@ -93,7 +93,7 @@ describe("wizard Masukkan chat", () => {
   it("katalog kosong saat proses menampilkan tombol Buka Katalog", async () => {
     fetchMock.mockImplementation(async (url: string, init?: RequestInit) => {
       const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body });
-      if (url.endsWith("/api/impor/pratinjau")) return ok({ ...pratinjau, menu: [pratinjau.menu[1]] });
+      if (url.endsWith("/api/impor/pratinjau")) return ok({ ...pratinjau, menu: [] });
       if (url.endsWith("/api/impor") && init?.method === "POST")
         return { ok: false, status: 409, json: async () => ({ error: { kode: "katalog_kosong", pesan: "Isi menu dulu." } }) };
       return ok([]);
@@ -107,8 +107,10 @@ describe("wizard Masukkan chat", () => {
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Lanjut" }));
     });
+    // Menu kosong tidak membuat buntu: penjual bisa menambah menu atau lanjut.
+    expect(await screen.findByRole("button", { name: "Tambah menu" })).toBeTruthy();
     await act(async () => {
-      fireEvent.click(await screen.findByRole("button", { name: "Menu sudah benar, lanjut" }));
+      fireEvent.click(screen.getByRole("button", { name: "Menu sudah benar, lanjut" }));
     });
     expect(panggilan("POST", "/api/products")).toHaveLength(0);
     await act(async () => {

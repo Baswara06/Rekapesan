@@ -226,10 +226,9 @@ export default function MasukkanChat() {
             {menu.length === 0 ? (
               <div className="kartu-ajak nada-kuning" role="note">
                 <Icon nama="peringatan" />
-                <span>Menu belum terbaca dari chat. Tambahkan menu di Katalog dulu, lalu kembali ke sini.</span>
-                <a href="#/katalog" className="tombol tombol-utama tombol-papan">
-                  Buka Katalog
-                </a>
+                <span>
+                  Menu belum terbaca dari chat. Tambahkan menu di bawah, atau lanjut saja bila menu sudah ada di Katalog.
+                </span>
               </div>
             ) : (
               <ul className="wizard-menu">
@@ -267,12 +266,15 @@ export default function MasukkanChat() {
                 )}
               </ul>
             )}
+            <Tombol className="tombol-papan" varian="hantu" ikon="tambah" onClick={() => setMenu((lama) => [...lama, { nama: "", harga: "", sudahAda: false }])}>
+              Tambah menu
+            </Tombol>
             {!menuBaruValid && <p className="bantu teks-kuning">Isi nama dan harga (angka lebih dari 0) untuk setiap menu baru.</p>}
             <div className="baris-tombol">
               <Tombol className="tombol-papan" ikon="kiri" disabled={jalan} onClick={() => setLangkah(0)}>
                 Kembali
               </Tombol>
-              <Tombol className="tombol-papan" varian="utama" ikon="centang" memuat={jalan} disabled={!menuBaruValid || menu.length === 0} onClick={simpanMenu}>
+              <Tombol className="tombol-papan" varian="utama" ikon="centang" memuat={jalan} disabled={!menuBaruValid} onClick={simpanMenu}>
                 {menuBaru.length ? `Simpan ${menuBaru.length} menu baru` : "Menu sudah benar, lanjut"}
               </Tombol>
             </div>
