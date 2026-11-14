@@ -19,6 +19,7 @@ Basis: `/api`. Format: JSON. Autentikasi: header `Authorization: Bearer <token>`
 | `validasi_gagal` | 409 | Aksi tidak cocok dengan status pesanan, mis. menyetujui pesanan batal atau membuat balasan sebelum disetujui |
 | `format_file_tidak_dikenal` | 400 | Berkas bukan ekspor WhatsApp yang dikenali |
 | `impor_bentrok` | 409 | Ada impor lain untuk batch yang sama sedang berjalan. Tunggu sebentar lalu ulangi |
+| `katalog_kosong` | 409 | Impor ditolak karena akun belum punya menu aktif. FE sebaiknya mengarahkan ke Katalog |
 | `kuota_llm_habis` | 429 | Kuota model habis |
 | `llm_gagal` | 502 | Model atau penyedia tidak bisa dihubungi, atau fitur AI belum tersedia |
 
@@ -84,7 +85,9 @@ Respons:
 { "pesan_baru": 42, "pesan_dilewati": 130, "pesanan_dibuat": 11, "pesanan_diubah": 2, "perlu_cek": 4 }
 ```
 
-Impor ulang aman: pesan yang sudah pernah masuk dilewati (`pesan_dilewati`) dan tidak membuat pesanan dobel. Kemungkinan galat: `tidak_ditemukan`, `format_file_tidak_dikenal`, `validasi_gagal` (kosong atau lebih dari 20 MB), `impor_bentrok`, `kuota_llm_habis`, `llm_gagal`.
+Impor ulang aman: pesan yang sudah pernah masuk dilewati (`pesan_dilewati`) dan tidak membuat pesanan dobel. Kemungkinan galat: `tidak_ditemukan`, `katalog_kosong`, `format_file_tidak_dikenal`, `validasi_gagal` (kosong atau lebih dari 20 MB), `impor_bentrok`, `kuota_llm_habis`, `llm_gagal`.
+
+`katalog_kosong` (409) dikembalikan bila akun belum punya satu pun menu aktif. Pemeriksaan ini terjadi sebelum berkas dibaca, jadi tidak ada pesan yang disimpan dan LLM tidak dipanggil. Tanpa menu, semua pesanan akan bertanda `item_tidak_dikenal` dan harganya tidak bisa dihitung.
 
 Share target PWA: service worker menerima berkas dari menu Bagikan dan meneruskannya ke endpoint di atas (batch aktif atau batch baru yang dipilih pengguna).
 

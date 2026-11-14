@@ -8,9 +8,9 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from app.api.kepemilikan import batch_milik, pemilik_aktif
+from app.api.kepemilikan import batch_milik, pemilik_aktif, produk_milik
 from app.core.errors import ApiError
-from app.db import get_db
+from app.db import Product, get_db
 from app.parser import FormatTidakDikenal
 from app.parser.whatsapp import MAKS_UKURAN_BYTE
 from app.services import BatchTidakDitemukan, EkstraksiGagalTotal, ImporBentrok, ImportResult, import_batch
@@ -33,6 +33,10 @@ async def impor_chat(batch_id: str, request: Request, db: Session = Depends(get_
         batch_milik(db, batch_id, pemilik)
     except ApiError:
         return _galat(404, "tidak_ditemukan", "Batch tidak ditemukan.")
+    # Akun baru belum punya menu: tanpa katalog semua pesanan jadi `item_tidak_dikenal` dan panggilan
+    # LLM terbuang. Tolak sebelum berkas dibaca supaya penjual diarahkan mengisi menu dulu.
+    if db.scalar(produk_milik(pemilik).where(Product.aktif.is_(True)).limit(1)) is None:
+        return _galat(409, "katalog_kosong", "Isi menu di Katalog dulu. Tanpa menu, pesanan tidak bisa dicocokkan dan harganya tidak bisa dihitung.")
     data: bytes | str | None = None
 
     if "application/json" in request.headers.get("content-type", ""):
