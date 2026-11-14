@@ -4523,3 +4523,14 @@ main[tabindex="-1"]:focus {
     left: 46%;
   }
 }
+@media (min-width: 900px) {
+  /* Lebih rapat: kartu rekap hanya sejarak satu panah dari gelembung chat. */
+  .ilu-panah {
+    left: 17.6rem;
+    top: 4.2rem;
+    width: 4.4rem;
+  }
+  .ilu-rekap {
+    left: 22.6rem;
+  }
+}
