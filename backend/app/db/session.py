@@ -64,10 +64,19 @@ def get_readonly_engine() -> Engine:
 
 
 def init_db(engine: Engine | None = None) -> None:
-    """Buat semua tabel yang belum ada, lalu tambahkan kolom `pemilik` ke database lama. Aman dipanggil berulang."""
+    """Buat semua tabel yang belum ada, lalu tambahkan kolom baru ke database lama. Aman dipanggil berulang."""
     engine = engine or get_engine()
     Base.metadata.create_all(engine)
     _tambah_kolom_pemilik(engine)
+    _tambah_kolom_nama_toko(engine)
+
+
+def _tambah_kolom_nama_toko(engine: Engine) -> None:
+    """Tabel `users` dari sebelum ada nama toko: tambahkan kolomnya, isinya dibiarkan kosong (NULL)."""
+    with engine.begin() as conn:
+        if "nama_toko" not in {k["name"] for k in inspect(conn).get_columns("users")}:
+            conn.execute(text("ALTER TABLE users ADD COLUMN nama_toko VARCHAR(60)"))
+
 
 
 def _tambah_kolom_pemilik(engine: Engine) -> None:
