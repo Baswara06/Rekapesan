@@ -4206,3 +4206,10 @@ main[tabindex="-1"]:focus {
 .menu-baru-tertanam .judul-kartu {
   margin: 0;
 }
+.wizard-menu-pembeli {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  margin: 0;
+}

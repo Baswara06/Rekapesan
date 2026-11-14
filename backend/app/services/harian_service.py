@@ -103,6 +103,71 @@ def menu_dari_pesan(isi: str) -> list[tuple[str, int]]:
     return menu
 
 
+# Kata yang tidak pernah jadi nama menu di pesan pembeli. Angka setelah kata-kata alamat/waktu bukan jumlah porsi.
+_KATA_PENGISI = {
+    "kak", "ka", "kakak", "mbak", "mba", "mas", "bu", "pak", "bang", "om", "ya", "yaa", "yah", "dong", "deh", "aja", "sih",
+    "mau", "pesan", "pesen", "order", "aku", "saya", "gue", "gua", "tolong", "jadi", "jadinya", "ganti", "tambah", "sama",
+    "dan", "terus", "lagi", "juga", "eh", "maaf", "nih", "ini", "itu", "yang", "ada", "ga", "gak", "nggak", "kah", "buat",
+    "untuk", "x", "porsi", "pcs", "bungkus", "bks", "biji", "buah", "nya", "total", "semua",
+}
+_KATA_ALAMAT = {
+    "jam", "pukul", "blok", "kamar", "lt", "lantai", "jl", "jln", "jalan", "no", "nomor", "rt", "rw", "gang", "gg", "kos",
+    "kost", "kantor", "kirim", "alamat", "perum", "tgl", "tanggal", "hari", "menit", "rb", "ribu", "k", "rp", "kelas",
+}
+_ANGKA_JUMLAH = re.compile(r"(?<![\d.:/,])\b(\d{1,3})\b(?![.:/,]?\d)")
+
+
+def _ringkas(teks: str) -> str:
+    return re.sub(r"[^a-z]", "", teks.lower())
+
+
+def _kata_bersih(kata: str) -> str:
+    kata = kata.lower()
+    return kata[:-3] if kata.endswith("nya") and len(kata) > 5 else kata
+
+
+def calon_menu_pembeli(isi: str) -> list[str]:
+    """Tebakan nama menu dari pesan pembeli: kata-kata tepat sebelum (atau sesudah) sebuah jumlah, mis. "geprek 2"."""
+    calon = []
+    for segmen in re.split(r"[\n,;+&]|\bsama\b|\bdan\b", isi, flags=re.IGNORECASE):
+        batas = 0  # kata untuk sebuah jumlah hanya diambil sejak jumlah sebelumnya ("bawang putih 1 ketumbar 1")
+        for m in _ANGKA_JUMLAH.finditer(segmen):
+            sebelum = [_kata_bersih(k) for k in re.findall(r"[A-Za-z]+", segmen[batas : m.start()])]
+            batas = m.end()
+            if sebelum and sebelum[-1] in _KATA_ALAMAT:
+                continue
+            nama: list[str] = []
+            alamat = False
+            for k in reversed(sebelum[-4:]):
+                if k in _KATA_ALAMAT:
+                    alamat = True  # "Jl. Mawar 3", "kos Melati kamar 5": nama tempat, bukan menu
+                    break
+                nama.insert(0, k)
+            if alamat:
+                continue
+            nama = [k for k in nama if k not in _KATA_PENGISI and len(k) >= 2]
+            if not nama:  # jumlah di depan: "2 risol mayo"
+                sesudah = [_kata_bersih(k) for k in re.findall(r"[A-Za-z]+", segmen[m.end() :])[:4]]
+                for k in sesudah:
+                    if k in _KATA_ALAMAT:
+                        break
+                    if k not in _KATA_PENGISI and len(k) >= 2:
+                        nama.append(k)
+            if nama and len(" ".join(nama)) >= 4:
+                calon.append(" ".join(nama))
+    return calon
+
+
+def _sudah_dikenal(calon: str, dikenal: list[str]) -> bool:
+    """Cocok bila semua kata calon ada di satu menu, atau versi tanpa spasinya termuat (mis. "esteh" di "Es Teh Manis")."""
+    kata = set(calon.split())
+    ringkas = _ringkas(calon)
+    for d in dikenal:
+        if kata <= set(d.lower().split()) or ringkas in _ringkas(d):
+            return True
+    return False
+
+
 def pratinjau(file_or_text: IO[bytes] | bytes | str, products: list[Product]) -> dict[str, Any]:
     """Tebakan penjual, menu terdeteksi, dan rentang tanggal. Tidak menyimpan apa pun."""
     pesan = parse_export(file_or_text, None)
@@ -120,6 +185,19 @@ def pratinjau(file_or_text: IO[bytes] | bytes | str, products: list[Product]) ->
             ada = katalog.get(kunci)
             menu[kunci] = {"nama": ada.nama if ada else nama, "harga": harga, "sudah_ada": ada is not None, "product_id": ada.id if ada else None}
 
+    # Menu yang disebut pembeli tapi tidak ada di daftar menu penjual maupun katalog (mungkin lupa ditambahkan).
+    dikenal = [m["nama"] for m in menu.values()] + [p.nama for p in products] + [a for p in products for a in (p.alias or [])]
+    sebut: dict[str, dict[str, Any]] = {}
+    for p in pesan:
+        if p.pengirim == penjual:
+            continue
+        for c in calon_menu_pembeli(p.isi):
+            if _sudah_dikenal(c, dikenal):
+                continue
+            g = sebut.setdefault(c, {"nama": c.title(), "jumlah_sebut": 0, "contoh": p.isi if len(p.isi) <= 80 else p.isi[:80] + "…"})
+            g["jumlah_sebut"] += 1
+    menu_pembeli = sorted(sebut.values(), key=lambda g: (-g["jumlah_sebut"], g["nama"]))
+
     per_hari = Counter(p.waktu.date() for p in pesan)
     hari = sorted(per_hari)[-MAKS_HARI:]
     return {
@@ -129,6 +207,8 @@ def pratinjau(file_or_text: IO[bytes] | bytes | str, products: list[Product]) ->
         "jumlah_pesan": sum(per_hari[h] for h in hari),
         "hari": [{"tanggal": h.isoformat(), "jumlah_pesan": per_hari[h]} for h in hari],
         "menu": list(menu.values()),
+        # Tebakan kode, bukan pasti menu: ditampilkan tanpa centang dan tanpa harga, penjual yang memutuskan.
+        "menu_dari_pembeli": menu_pembeli,
     }
 
 

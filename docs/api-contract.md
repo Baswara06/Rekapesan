@@ -120,7 +120,7 @@ Alur utama baru: penjual cukup memasukkan chat, tanpa membuat PO dulu. Endpoint 
   "menu": [{ "nama": "Nasi Ayam Bawang Putih", "harga": 17000, "sudah_ada": false, "product_id": null }] }
 ```
 
-Dibaca kode, bukan LLM. Pesan dianggap daftar menu bila memuat **minimal dua harga** ("17rb", "17 ribu", "17k", "17.000", "Rp17.000"), jadi pesan seperti "ubah harga jadi 1000" tidak terbaca sebagai menu. Angka di bawah 1000 tanpa "rb"/"k" dianggap jumlah. `penjual` = pengirim dengan pesan daftar menu terbanyak (bisa `null`). Menu disimpan penjual lewat `POST /products`. Harga selalu ditentukan penjual.
+Dibaca kode, bukan LLM. Pesan dianggap daftar menu bila memuat **minimal dua harga** ("17rb", "17 ribu", "17k", "17.000", "Rp17.000"), jadi pesan seperti "ubah harga jadi 1000" tidak terbaca sebagai menu. Angka di bawah 1000 tanpa "rb"/"k" dianggap jumlah. `penjual` = pengirim dengan pesan daftar menu terbanyak (bisa `null`). Menu disimpan penjual lewat `POST /products`. Harga selalu ditentukan penjual. `menu_dari_pembeli` (`[{nama, jumlah_sebut, contoh}]`): tebakan kode dari pesan pembeli, yaitu kata-kata tepat sebelum/sesudah sebuah jumlah ("geprek 2", "2 risol mayo") yang tidak cocok dengan daftar menu penjual, katalog, maupun alias. Kata alamat/waktu (jam, blok, Jl., kamar, lt) disaring. Ditampilkan tanpa centang dan tanpa harga, penjual yang memutuskan.
 
 `/impor`:
 

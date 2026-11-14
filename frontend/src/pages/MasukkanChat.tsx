@@ -16,7 +16,8 @@ import { useApp } from "../lib/store";
 const MAKS_BYTE = 20 * 1024 * 1024;
 const LANGKAH = ["Masukkan chat", "Cek menu", "Proses pesanan"] as const;
 
-type BarisMenu = { nama: string; harga: string; sudahAda: boolean; dipilih: boolean };
+/** `dariPembeli`: disebut pembeli tapi tidak ada di daftar menu penjual (tebakan kode, tidak dicentang otomatis). */
+type BarisMenu = { nama: string; harga: string; sudahAda: boolean; dipilih: boolean; dariPembeli?: { jumlah: number; contoh: string } };
 
 function jadiGalat(e: unknown): ApiError {
   return e instanceof ApiError ? e : new ApiError(0, "galat", String(e));
@@ -59,7 +60,16 @@ export default function MasukkanChat() {
     try {
       const p = await api.pratinjauImpor(isi);
       setPratinjau(p);
-      setMenu(p.menu.map((m) => ({ nama: m.nama, harga: m.harga != null ? String(m.harga) : "", sudahAda: m.sudah_ada, dipilih: true })));
+      setMenu([
+        ...p.menu.map((m) => ({ nama: m.nama, harga: m.harga != null ? String(m.harga) : "", sudahAda: m.sudah_ada, dipilih: true })),
+        ...(p.menu_dari_pembeli ?? []).map((m) => ({
+          nama: m.nama,
+          harga: "",
+          sudahAda: false,
+          dipilih: false,
+          dariPembeli: { jumlah: m.jumlah_sebut, contoh: m.contoh },
+        })),
+      ]);
       setMenuTersimpan(false);
       setLangkah(1);
     } catch (e) {
@@ -267,9 +277,20 @@ export default function MasukkanChat() {
                           onChange={(e) => ubahMenu(i, { harga: e.target.value.replace(/\D/g, "") })}
                         />
                       </div>
-                      <span className="lencana nada-kuning">
-                        <Icon nama="tambah" ukuran={16} /> Menu baru
-                      </span>
+                      {m.dariPembeli ? (
+                        <p className="wizard-menu-pembeli">
+                          <span className="lencana nada-kuning">
+                            <Icon nama="chat" ukuran={16} /> Disebut pembeli, belum ada di daftar menu
+                          </span>
+                          <span className="redup kecil">
+                            {m.dariPembeli.jumlah}× di chat, mis. “{m.dariPembeli.contoh}”. Centang kalau memang menu Anda yang lupa ditambahkan.
+                          </span>
+                        </p>
+                      ) : (
+                        <span className="lencana nada-kuning">
+                          <Icon nama="tambah" ukuran={16} /> Menu baru
+                        </span>
+                      )}
                     </li>
                   ),
                 )}

@@ -73,6 +73,8 @@ export interface PratinjauImpor {
   jumlah_pesan: number;
   hari: { tanggal: string; jumlah_pesan: number }[];
   menu: MenuTerdeteksi[];
+  /** Tebakan kode dari pesan pembeli: disebut tapi tidak ada di daftar menu penjual maupun katalog. Tanpa harga. */
+  menu_dari_pembeli?: { nama: string; jumlah_sebut: number; contoh: string }[];
 }
 
 export interface HasilImporHari extends ImportResult {

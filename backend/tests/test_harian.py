@@ -114,3 +114,32 @@ def test_ringkasan_milik_akun_sendiri_saja(db, katalog_ratri):
         "keseluruhan": {"perlu_cek": 0, "diproses": 0, "selesai": 0, "batal": 0, "omzet": 0, "belum_bayar": 0, "jumlah_belum_bayar": 0},
         "hari": [],
     }
+
+
+@pytest.mark.parametrize(
+    ("isi", "harapan"),
+    [
+        ("nasi ayam geprek 2 ada ga kak? kalau ada kirim ke Asrama Putri jam 12", ["nasi ayam geprek"]),
+        ("bawang putih 1 ketumbar 1", ["bawang putih", "ketumbar"]),
+        ("2 risol mayo sama 3 kue lumpur", ["risol mayo", "kue lumpur"]),
+        # Alamat dan jam bukan menu.
+        ("nasi ayam ketumbar 2 + es teh manis 2\njam 11 ke Jl. Mawar 3 ya", ["nasi ayam ketumbar", "es teh manis"]),
+        ("alamat kantor kelurahan lt 1, jam 12", []),
+        ("kirim ke Perum Griya Asri blok D7 jam 11.30 ya kak", []),
+    ],
+)
+def test_calon_menu_pembeli(isi, harapan):
+    from app.services.harian_service import calon_menu_pembeli
+
+    assert calon_menu_pembeli(isi) == harapan
+
+
+def test_pratinjau_menampilkan_menu_yang_disebut_pembeli_di_luar_daftar(db):
+    hasil = pratinjau(SAMPEL, [])
+    nama = [m["nama"] for m in hasil["menu_dari_pembeli"]]
+    assert "Nasi Ayam Geprek" in nama
+    # Menu yang ada di daftar penjual tidak diulang.
+    assert not {"Nasi Ayam Bawang Putih", "Nasi Ayam Ketumbar", "Es Teh Manis"} & set(nama)
+    # Alias di katalog membuat sebutan pembeli dianggap sudah dikenal.
+    baput = Product(pemilik="demo", nama="Nasi Ayam Bawang Putih", alias=["nasi ayam baput"], harga=17000)
+    assert "Nasi Ayam Baput" not in [m["nama"] for m in pratinjau(SAMPEL, [baput])["menu_dari_pembeli"]]
