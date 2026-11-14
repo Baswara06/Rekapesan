@@ -87,6 +87,9 @@ const panggilan = () =>
 describe("papan pesanan", () => {
   it("menampilkan lencana status dan bayar sebagai teks, tanda kuning, dan grup jam", () => {
     tampil();
+    expect(screen.getByText(/menunggu persetujuan Anda/)).toBeTruthy();
+    expect(screen.getByText("Rp68.000")).toBeTruthy(); // omzet satu baris
+    expect(screen.getByText("1 pembeli")).toBeTruthy();
     expect(screen.getByText("Minggu, 15 Nov")).toBeTruthy();
     expect(screen.getByText("Kirim 11:30")).toBeTruthy();
     const wulan = within(kartu("Bu Wulan"));
