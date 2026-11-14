@@ -28,6 +28,8 @@ function judulLangkah(t: TraceLangkah): { ikon: NamaIkon; judul: string } {
       return { ikon: "orang", judul: (nama ? `Mencari pesanan “${nama}”` : "Mencari pesanan pembeli") + hari };
     case "rekap_produksi":
       return { ikon: "rekap", judul: (jam ? `Menghitung porsi untuk jam ${jam}` : "Menghitung porsi yang harus dimasak") + hari };
+    case "menu_tidak_dikenal":
+      return { ikon: "katalog", judul: `Mencari menu yang tidak ada di katalog${hari}` };
     case "cari_riwayat_tanya": {
       const kata = teks(t.argumen.kata_kunci);
       return { ikon: "langkah", judul: kata ? `Membaca riwayat percakapan soal “${kata}”` : "Membaca riwayat percakapan lain" };
@@ -137,6 +139,26 @@ function RekapProduksi({ h }: { h: Data }) {
   );
 }
 
+function MenuTakDikenal({ h }: { h: Data }) {
+  const item = daftar(h.item);
+  if (item.length === 0) return <p className="langkah-ringkas">Semua pesanan memakai menu yang ada di katalog.</p>;
+  return (
+    <>
+      <p className="langkah-ringkas">{bil(h.jumlah)} item belum ada di katalog</p>
+      <ul className="langkah-daftar">
+        {item.map((it, i) => (
+          <li key={i}>
+            <span className="langkah-nama">
+              {teks(it.pembeli) ?? "-"}: “{teks(it.teks_dari_chat) ?? "-"}”
+            </span>
+            <span className="langkah-nilai">{teks(it.tanggal) ? tanggalPanjang(String(it.tanggal)) : ""}</span>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
 function RiwayatLain({ h }: { h: Data }) {
   const riwayat = daftar(h.riwayat);
   if (riwayat.length === 0) return <p className="langkah-ringkas">{teks(h.pesan) ?? "Tidak ada riwayat yang cocok."}</p>;
@@ -170,6 +192,7 @@ function IsiLangkah({ t }: { t: TraceLangkah }) {
     cek_pesanan_pelanggan: <PesananPembeli h={h} />,
     rekap_produksi: <RekapProduksi h={h} />,
     cari_riwayat_tanya: <RiwayatLain h={h} />,
+    menu_tidak_dikenal: <MenuTakDikenal h={h} />,
   };
   return <>{isi[t.tool] ?? <p className="langkah-ringkas">{t.hasil_ringkas}</p>}</>;
 }

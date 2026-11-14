@@ -113,7 +113,7 @@ def test_nama_dengan_karakter_like_tidak_cocok_semua(data):
 
 
 def test_semua_tool_hanya_membaca():
-    assert set(alat_agen.ALAT) == {"rekap_produksi", "daftar_belum_bayar", "cek_pesanan_pelanggan"}
+    assert set(alat_agen.ALAT) == {"rekap_produksi", "daftar_belum_bayar", "cek_pesanan_pelanggan", "menu_tidak_dikenal"}
     for s in alat_agen.SKEMA:  # model tidak bisa memilih batch
         assert "batch_id" not in s["function"]["parameters"]["properties"]
 
@@ -299,3 +299,20 @@ def test_agen_tanpa_pemilik_tidak_menawarkan_tool_riwayat(ro, monkeypatch):
     monkeypatch.setattr(llm, "chat_alat", tiruan)
     jalankan(agen.ask_agent("halo", "b-1", []))
     assert "cari_riwayat_tanya" not in [a["function"]["name"] for a in tiruan.panggilan[0][1]]
+
+
+def test_tool_menu_tidak_dikenal(data):
+    from app.db import Customer as C, Order as O, OrderItem as OI
+
+    c = C(batch_id="b-1", nama_tampil="Kak Nadia")
+    data.add(c)
+    data.flush()
+    o = O(batch_id="b-1", customer_id=c.id, status="perlu_cek")
+    o.items = [OI(teks_asli="nasi ayam geprek 2", qty=2)]
+    batal = O(batch_id="b-1", customer_id=c.id, status="batal")
+    batal.items = [OI(teks_asli="mie goreng 1", qty=1)]
+    data.add_all([o, batal])
+    data.commit()
+    r = alat_agen.menu_tidak_dikenal(data, ["b-1"])
+    assert r["jumlah"] == 1 and r["item"][0]["pembeli"] == "Kak Nadia" and r["item"][0]["teks_dari_chat"] == "nasi ayam geprek 2"
+    assert "menu_tidak_dikenal" in [s["function"]["name"] for s in alat_agen.SKEMA]
