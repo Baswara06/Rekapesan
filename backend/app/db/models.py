@@ -42,7 +42,10 @@ class User(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     username: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(200))
+    # Nama toko yang tampil di Beranda. None untuk akun lama yang belum mengisinya.
+    nama_toko: Mapped[str | None] = mapped_column(String(60), nullable=True)
     dibuat_pada: Mapped[datetime] = mapped_column(DateTime, default=_sekarang)
+
 
 
 class Product(Base):
