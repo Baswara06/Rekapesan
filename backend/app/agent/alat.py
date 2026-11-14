@@ -13,6 +13,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.db.models import (
+    STATUS_BATAL,
     STATUS_DIKONFIRMASI,
     STATUS_DISETUJUI,
     STATUS_PERLU_CEK,
@@ -146,16 +147,46 @@ def cek_pesanan_pelanggan(db: Session, batch_id: str | Sequence[str], nama: str)
     return {"cocok": len(hasil), "pesanan": hasil} if hasil else {"cocok": 0, "pesan": f"Tidak ada pembeli bernama '{nama}'."}
 
 
+def menu_tidak_dikenal(db: Session, batch_id: str | Sequence[str]) -> dict[str, Any]:
+    """Item pesanan (belum batal) yang tidak cocok dengan menu di katalog, mis. penjual lupa menambahkan menunya."""
+    ids = _ids(batch_id)
+    tanggal = _tanggal(db, ids)
+    baris = db.execute(
+        select(OrderItem, Order)
+        .join(Order, OrderItem.order_id == Order.id)
+        .where(Order.batch_id.in_(ids), OrderItem.product_id.is_(None), Order.status != STATUS_BATAL)
+        .options(selectinload(Order.customer))
+        .order_by(Order.dibuat_pada)
+    ).all()
+    item = [
+        {
+            "pembeli": o.customer.nama_tampil,
+            "tanggal": tanggal.get(o.batch_id),
+            "teks_dari_chat": _potong(it.teks_asli),
+            "porsi": it.qty,
+            "status_pesanan": o.status,
+        }
+        for it, o in baris
+    ]
+    return {
+        "jumlah": len(item),
+        "item": item,
+        "catatan": "Penjual bisa menambahkannya ke katalog dari kartu 'Dipesan, tapi belum ada di katalog' di Beranda.",
+    }
+
+
 # Nama tool -> fungsi. Argumen model disaring ke `ARGUMEN` supaya tidak ada yang menyelundupkan parameter lain.
 ALAT: dict[str, Callable[..., dict[str, Any]]] = {
     "rekap_produksi": rekap_produksi,
     "daftar_belum_bayar": daftar_belum_bayar,
     "cek_pesanan_pelanggan": cek_pesanan_pelanggan,
+    "menu_tidak_dikenal": menu_tidak_dikenal,
 }
 ARGUMEN: dict[str, tuple[str, ...]] = {
     "rekap_produksi": ("jam", "tanggal"),
     "daftar_belum_bayar": ("tanggal",),
     "cek_pesanan_pelanggan": ("nama", "tanggal"),
+    "menu_tidak_dikenal": ("tanggal",),
 }
 _TANGGAL = {"type": "string", "description": "Tanggal kirim YYYY-MM-DD dari daftar hari. Kosongkan untuk semua hari."}
 
@@ -192,6 +223,17 @@ SKEMA: list[dict[str, Any]] = [
                 "properties": {"nama": {"type": "string", "description": "Nama pembeli, boleh sebagian."}, "tanggal": _TANGGAL},
                 "required": ["nama"],
             },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "menu_tidak_dikenal",
+            "description": (
+                "Daftar item yang dipesan pembeli tetapi tidak ada di katalog menu (mis. penjual lupa menambahkan menunya), "
+                "beserta pembeli, tanggal, dan porsi. Pakai untuk pertanyaan seperti 'ada yang pesan menu yang tidak ada?'."
+            ),
+            "parameters": {"type": "object", "properties": {"tanggal": _TANGGAL}},
         },
     },
 ]
