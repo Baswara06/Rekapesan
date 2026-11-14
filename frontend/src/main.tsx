@@ -1,5 +1,4 @@
 import "@fontsource-variable/plus-jakarta-sans";
-import "@fontsource-variable/fraunces";
 import "./styles.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";

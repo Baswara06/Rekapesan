@@ -13,7 +13,8 @@ const MAKS_BYTE = 20 * 1024 * 1024;
 type Mode = "tempel" | "berkas";
 
 export default function Impor({ rute }: { rute: Rute }) {
-  const { batchAktif, batches, dataBerubah, toast } = useApp();
+  const { batchAktif, batches, dataBerubah, toast, katalog, katalogSiap } = useApp();
+  const katalogKosong = katalogSiap && !katalog.some((p) => p.aktif);
   const [mode, setMode] = useState<Mode>("tempel");
   const [teks, setTeks] = useState("");
   const [berkas, setBerkas] = useState<File | null>(null);
@@ -91,6 +92,18 @@ export default function Impor({ rute }: { rute: Rute }) {
     <div className="tumpuk halaman-sempit">
       <Kepala judul="Masukkan chat" sub="Langkah 1 dari 3" />
       <PilihBatch ringkas />
+
+      {katalogKosong && galat?.kode !== "katalog_kosong" && (
+        <div className="kartu-ajak nada-kuning kaca" role="note">
+          <Icon nama="peringatan" />
+          <span>
+            <strong>Isi menu dulu.</strong> Tanpa menu di Katalog, pesanan tidak bisa dicocokkan dan harganya tidak bisa dihitung.
+          </span>
+          <a href="#/katalog" className="tombol tombol-utama">
+            Buka Katalog
+          </a>
+        </div>
+      )}
 
       {batches.length > 0 && (
         <Kaca className="kartu">
@@ -187,7 +200,17 @@ export default function Impor({ rute }: { rute: Rute }) {
         </Kaca>
       )}
 
-      {galat && <Galat galat={galat} ulang={siap ? impor : undefined} />}
+      {galat &&
+        (galat.kode === "katalog_kosong" ? (
+          // Mengulang impor tidak ada gunanya sebelum menu diisi, jadi yang ditawarkan hanya jalan ke Katalog.
+          <Galat galat={galat}>
+            <a href="#/katalog" className="tombol tombol-utama">
+              <Icon nama="katalog" /> Buka Katalog
+            </a>
+          </Galat>
+        ) : (
+          <Galat galat={galat} ulang={siap ? impor : undefined} />
+        ))}
       {galat?.kode === "impor_bentrok" && <p className="bantu">Impor sebelumnya masih berjalan. Tunggu beberapa detik.</p>}
 
       {hasil && <HasilImpor hasil={hasil} />}
@@ -250,7 +273,7 @@ function CaraEkspor() {
             Pilih <strong>Tanpa media</strong>.
           </li>
           <li>
-            Pilih <strong>Rekapesan</strong> di daftar bagikan (bila aplikasi sudah dipasang), atau simpan ke berkas lalu unggah di sini.
+            Pilih <strong>RekaPesan</strong> di daftar bagikan (bila aplikasi sudah dipasang), atau simpan ke berkas lalu unggah di sini.
           </li>
         </ol>
         <h3>

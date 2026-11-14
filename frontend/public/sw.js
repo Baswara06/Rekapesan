@@ -1,4 +1,4 @@
-// Service worker Rekapesan.
+// Service worker RekaPesan.
 // 1. Share target: menerima ekspor chat yang dibagikan dari WhatsApp (Android), menyimpannya
 //    sementara di cache, lalu membuka layar Impor. Berkas tidak dikirim ke mana pun sebelum
 //    penjual memilih PO dan menekan Impor.

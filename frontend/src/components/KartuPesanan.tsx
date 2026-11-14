@@ -100,7 +100,7 @@ export function KartuPesanan({
           {inisial(order.customer.nama_tampil)}
         </span>
         <div className="pesanan-nama">
-          <h3 id={idJudul}>{order.customer.nama_tampil}</h3>
+          <h2 id={idJudul}>{order.customer.nama_tampil}</h2>
           <LencanaStatus status={order.status} />
         </div>
         <div className="pesanan-total">

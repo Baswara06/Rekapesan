@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Icon, type NamaIkon } from "../components/Icon";
+import { FormNamaToko } from "../components/Toko";
 import { Kaca, Kepala, Konfirmasi, Tombol } from "../components/ui";
 import { api, ApiError } from "../lib/api";
 import { tanggalPanjang } from "../lib/format";
-import { useApp, type Tema } from "../lib/store";
+import { useApp, type Tema, type UkuranTeks } from "../lib/store";
 
 const TEMA: { id: Tema; label: string; ikon: NamaIkon }[] = [
   { id: "otomatis", label: "Ikuti HP", ikon: "hp" },
@@ -11,13 +12,32 @@ const TEMA: { id: Tema; label: string; ikon: NamaIkon }[] = [
   { id: "gelap", label: "Gelap", ikon: "bulan" },
 ];
 
+const UKURAN: { id: UkuranTeks; label: string }[] = [
+  { id: "normal", label: "Biasa" },
+  { id: "besar", label: "Besar" },
+  { id: "sangat_besar", label: "Sangat besar" },
+];
+
 export default function Pengaturan() {
-  const { tema, setTema, batches, muatBatch, keluar, toast, dataBerubah } = useApp();
+  const { akun, tema, setTema, ukuranTeks, setUkuranTeks, batches, muatBatch, keluar, toast, dataBerubah } = useApp();
   const [hapus, setHapus] = useState<{ id: string; nama: string } | null>(null);
 
   return (
     <div className="tumpuk halaman-sempit">
       <Kepala judul="Pengaturan" kembali="#/lainnya" />
+
+      {akun && (
+        <Kaca className="kartu">
+          <h2 className="judul-kartu">
+            <Icon nama="belanja" /> Akun dan toko
+          </h2>
+          <p className="redup kecil">
+            Masuk sebagai <strong>{akun.username}</strong>
+          </p>
+          {/* key: form diisi ulang setelah nama toko tersimpan */}
+          <FormNamaToko key={akun.nama_toko ?? ""} awal={akun.nama_toko ?? ""} />
+        </Kaca>
+      )}
 
       <Kaca className="kartu">
         <fieldset className="pilihan-grup">
@@ -33,6 +53,26 @@ export default function Pengaturan() {
               </label>
             ))}
           </div>
+        </fieldset>
+      </Kaca>
+
+      <Kaca className="kartu">
+        <fieldset className="pilihan-grup">
+          <legend className="judul-kartu">
+            <Icon nama="teks" /> Ukuran huruf
+          </legend>
+          <div className="pilihan-kisi">
+            {UKURAN.map((u, i) => (
+              <label key={u.id} className={`pilihan ${ukuranTeks === u.id ? "aktif" : ""}`}>
+                <input type="radio" name="ukuran" value={u.id} checked={ukuranTeks === u.id} onChange={() => setUkuranTeks(u.id)} />
+                <span className={`contoh-huruf contoh-huruf-${i}`} aria-hidden="true">
+                  Aa
+                </span>
+                <span>{u.label}</span>
+              </label>
+            ))}
+          </div>
+          <p className="redup kecil">Memperbesar semua tulisan dan tombol di aplikasi.</p>
         </fieldset>
       </Kaca>
 

@@ -33,6 +33,12 @@ export interface Product {
 
 export type ProductIn = Omit<Product, "id">;
 
+/** Akun yang sedang masuk. `nama_toko` bisa null untuk akun lama atau yang belum mengisinya. */
+export interface Akun {
+  username: string;
+  nama_toko: string | null;
+}
+
 export interface Batch {
   id: string;
   nama: string;
@@ -202,9 +208,10 @@ export const api = {
   kesehatan: () => minta<{ status: string }>("/health"),
   login: (username: string, password: string) =>
     minta<{ token: string }>("/auth/login", { method: "POST", body: json({ username, password }) }),
-  daftar: (username: string, password: string) =>
-    minta<{ token: string }>("/auth/register", { method: "POST", body: json({ username, password }) }),
-
+  daftar: (username: string, password: string, nama_toko: string) =>
+    minta<{ token: string }>("/auth/register", { method: "POST", body: json({ username, password, nama_toko }) }),
+  akunSaya: () => minta<Akun>("/auth/me"),
+  ubahAkun: (nama_toko: string) => minta<Akun>("/auth/me", { method: "PATCH", body: json({ nama_toko }) }),
 
   daftarMenu: () => minta<Product[]>("/products"),
   buatMenu: (p: ProductIn) => minta<Product>("/products", { method: "POST", body: json(p) }),

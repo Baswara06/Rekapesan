@@ -142,7 +142,9 @@ export default function Rekap() {
               <Icon nama="truk" /> Urutan kirim
             </h2>
             {d.rekap.urutan_kirim.length === 0 ? (
-              <p className="redup">Belum ada pesanan disetujui.</p>
+              <Kosong ikon="truk" judul="Belum ada jadwal kirim">
+                <p>Urutan kirim per jam muncul setelah pesanan disetujui.</p>
+              </Kosong>
             ) : (
               <ol className="linimasa">
                 {d.rekap.urutan_kirim.map((u) => (

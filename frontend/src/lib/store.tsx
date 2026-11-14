@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ambilToken, api, ApiError, aturSaatTidakTerautentikasi, simpanToken, type Batch, type Product } from "./api";
+import { ambilToken, api, ApiError, aturSaatTidakTerautentikasi, simpanToken, type Akun, type Batch, type Product } from "./api";
 
 export type Tema = "otomatis" | "terang" | "gelap";
+export type UkuranTeks = "normal" | "besar" | "sangat_besar";
 
 interface Toast {
   id: number;
@@ -12,8 +13,12 @@ interface Toast {
 interface AppState {
   masuk: boolean;
   login: (u: string, p: string) => Promise<void>;
-  daftar: (u: string, p: string) => Promise<void>;
+  daftar: (u: string, p: string, namaToko: string) => Promise<void>;
   keluar: () => void;
+
+  /** Akun dari GET /auth/me. null bila belum dimuat atau server belum mendukung endpoint itu. */
+  akun: Akun | null;
+  setAkun: (a: Akun) => void;
 
   batches: Batch[];
   batchAktif: Batch | null;
@@ -22,6 +27,8 @@ interface AppState {
   batchSiap: boolean;
 
   katalog: Product[];
+  /** true setelah katalog pertama kali dimuat (berhasil atau gagal). */
+  katalogSiap: boolean;
   katalogMap: Map<string, Product>;
   muatKatalog: () => Promise<void>;
 
@@ -35,6 +42,8 @@ interface AppState {
 
   tema: Tema;
   setTema: (t: Tema) => void;
+  ukuranTeks: UkuranTeks;
+  setUkuranTeks: (u: UkuranTeks) => void;
 }
 
 const Ctx = createContext<AppState | null>(null);
@@ -62,9 +71,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [batchSiap, setBatchSiap] = useState(false);
   const [idAktif, setIdAktif] = useState<string | null>(() => baca<string>("rekapesan.batch", "") || null);
   const [katalog, setKatalog] = useState<Product[]>([]);
+  const [akun, setAkun] = useState<Akun | null>(null);
+  const [katalogSiap, setKatalogSiap] = useState(false);
   const [versiData, setVersiData] = useState(0);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [tema, setTemaState] = useState<Tema>(() => baca("rekapesan.tampilan", "terang"));
+  const [ukuranTeks, setUkuranTeks] = useState<UkuranTeks>(() => baca("rekapesan.ukuran", "normal"));
   const nomorToast = useRef(0);
 
   const tutupToast = useCallback((id: number) => setToasts((t) => t.filter((x) => x.id !== id)), []);
@@ -82,7 +94,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setMasuk(false);
     setBatches([]);
     setKatalog([]);
+    setAkun(null);
     setBatchSiap(false);
+    setKatalogSiap(false);
   }, []);
 
   useEffect(() => {
@@ -99,8 +113,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setMasuk(true);
   }, []);
 
-  const daftar = useCallback(async (u: string, p: string) => {
-    const { token } = await api.daftar(u, p);
+  const daftar = useCallback(async (u: string, p: string, namaToko: string) => {
+    const { token } = await api.daftar(u, p, namaToko);
     simpanToken(token);
     setMasuk(true);
   }, []);
@@ -122,6 +136,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setKatalog(await api.daftarMenu());
     } catch (e) {
       if (e instanceof ApiError && e.status !== 401) toast(e.message, "galat");
+    } finally {
+      setKatalogSiap(true);
     }
   }, [toast]);
 
@@ -129,9 +145,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!masuk) return;
     void muatBatch();
     void muatKatalog();
+    // Nama toko hanya pelengkap tampilan: kalau gagal (mis. server lama tanpa /auth/me), aplikasi tetap jalan.
+    api
+      .akunSaya()
+      .then(setAkun)
+      .catch(() => setAkun(null));
   }, [masuk, muatBatch, muatKatalog]);
 
   useEffect(() => tulis("rekapesan.batch", idAktif), [idAktif]);
+
+  // Ukuran huruf: seluruh antarmuka diperbesar lewat CSS (lihat [data-ukuran] di styles.css).
+  useEffect(() => {
+    tulis("rekapesan.ukuran", ukuranTeks);
+    document.documentElement.dataset.ukuran = ukuranTeks;
+  }, [ukuranTeks]);
 
   useEffect(() => {
     tulis("rekapesan.tampilan", tema);
@@ -155,12 +182,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       login,
       daftar,
       keluar,
+      akun,
+      setAkun,
       batches,
       batchAktif: batches.find((b) => b.id === idAktif) ?? null,
       pilihBatch: setIdAktif,
       muatBatch,
       batchSiap,
       katalog,
+      katalogSiap,
       katalogMap: new Map(katalog.map((p) => [p.id, p])),
       muatKatalog,
       versiData,
@@ -170,9 +200,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       tutupToast,
       tema,
       setTema: setTemaState,
+      ukuranTeks,
+      setUkuranTeks,
     }),
-    [masuk, login, daftar, keluar,
- batches, idAktif, muatBatch, batchSiap, katalog, muatKatalog, versiData, toast, toasts, tutupToast, tema],
+    [masuk, login, daftar, keluar, akun,
+ batches, idAktif, muatBatch, batchSiap, katalog, katalogSiap, muatKatalog, versiData, toast, toasts, tutupToast, tema, ukuranTeks],
   );
 
   return <Ctx.Provider value={nilai}>{children}</Ctx.Provider>;
