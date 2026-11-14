@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app import extractor as modul_extractor
-from app.db import Batch, get_db, init_db, make_engine
+from app.db import Batch, Product, get_db, init_db, make_engine
 from app.core.security import require_login
 from app.main import app
 from app.schemas import Extraction
@@ -22,6 +22,7 @@ def client(tmp_path, monkeypatch):
     with Session(engine) as s:
         s.add(Batch(id="b-1", pemilik="demo", nama="PO",
  tanggal_kirim=date(2026, 11, 13)))
+        s.add(Product(id="p-ayam", pemilik="demo", nama="Ayam Bakar", alias=[], harga=18000))
         s.commit()
 
     def _db():
@@ -57,6 +58,28 @@ def test_galat_seragam(client):
     assert res.status_code == 400 and res.json()["error"]["kode"] == "format_file_tidak_dikenal"
     res = client.post("/api/batches/b-1/import", json={})
     assert res.status_code == 422 and res.json()["error"]["kode"] == "validasi_gagal"
+
+
+@pytest.mark.parametrize("hapus", [True, False], ids=["tanpa_menu", "menu_nonaktif"])
+def test_impor_ditolak_bila_katalog_kosong_dan_llm_tidak_dipanggil(client, monkeypatch, hapus):
+    dipanggil = []
+
+    async def tercatat(sender_messages, catalog, active_order=None):
+        dipanggil.append(1)
+        return Extraction(intent="bukan_pesanan")
+
+    monkeypatch.setattr(modul_extractor, "extract_orders", tercatat)
+    s = next(app.dependency_overrides[get_db]())
+    produk = s.get(Product, "p-ayam")
+    if hapus:
+        s.delete(produk)
+    else:
+        produk.aktif = False
+    s.commit()
+
+    res = client.post("/api/batches/b-1/import", json={"text": TEKS})
+    assert res.status_code == 409 and res.json()["error"]["kode"] == "katalog_kosong"
+    assert dipanggil == []
 
 
 def test_llm_mati_total_menjadi_llm_gagal_dan_tidak_menyimpan(client, monkeypatch):
