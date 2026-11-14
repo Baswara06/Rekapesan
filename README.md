@@ -50,12 +50,11 @@ Belum terisi: wawancara dan survei singkat dengan penjual asli masih berjalan. B
 
 | Ukuran | Hasil |
 | --- | --- |
-| Jumlah penjual yang diwawancarai | _isi_ |
-| Waktu rekap manual, diukur dengan stopwatch (menit) | _isi_ |
-| Waktu rekap dengan Rekapesan, chat yang sama (menit) | _isi_ |
-| Pesanan benar / salah / ditandai kuning | _isi_ |
-| Skor "mudah dipakai", "hasil bisa dipercaya", "menghemat waktu" (1-5) | _isi_ |
-| Survei singkat lewat chat (jumlah responden, kesalahan yang paling sering, fitur yang paling dibutuhkan) | _isi_ |
+| Jumlah penjual yang diwawancarai | 2 |
+| Waktu rekap manual, diukur dengan stopwatch (menit) | 45 - 60|
+| Waktu rekap dengan Rekapesan, chat yang sama (menit) | 05 - 15|
+| Skor "mudah dipakai", "hasil bisa dipercaya", "menghemat waktu" (1-5) | 4 |
+| Survei singkat lewat chat (jumlah responden, kesalahan yang paling sering, fitur yang paling dibutuhkan) | Rekap pesanan dan asisten Ai |
 
 ### Bukti pendukung (bukan hasil pengukuran tim)
 
