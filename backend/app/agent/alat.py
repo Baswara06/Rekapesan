@@ -195,3 +195,59 @@ SKEMA: list[dict[str, Any]] = [
         },
     },
 ]
+
+
+# --- riwayat Tanya AI (dipanggil terpisah: butuh pemilik, bukan batch) -------------------------
+
+KEDALUWARSA_HARI = 30
+MAKS_RIWAYAT_CARI = 6
+
+
+def cari_riwayat_tanya(db: Session, pemilik: str, kecuali: str | None, kata_kunci: str | None = None) -> dict[str, Any]:
+    """Cari tanya-jawab di percakapan LAIN milik penjual yang sama (yang belum kedaluwarsa). Hanya membaca."""
+    from datetime import datetime, timedelta
+
+    from app.db.models import Percakapan, PesanTanya
+
+    batas = datetime.now() - timedelta(days=KEDALUWARSA_HARI)
+    q = (
+        select(PesanTanya, Percakapan)
+        .join(Percakapan, PesanTanya.percakapan_id == Percakapan.id)
+        .where(Percakapan.pemilik == pemilik, Percakapan.diubah_pada >= batas)
+    )
+    if kecuali:
+        q = q.where(Percakapan.id != kecuali)
+    kata = (kata_kunci or "").strip()
+    if kata:
+        q = q.where(func.lower(PesanTanya.isi).contains(kata.lower(), autoescape=True))
+    baris = db.execute(q.order_by(PesanTanya.dibuat_pada.desc()).limit(MAKS_RIWAYAT_CARI)).all()
+    if not baris:
+        return {"cocok": 0, "pesan": "Tidak ada riwayat percakapan lain yang cocok."}
+    return {
+        "cocok": len(baris),
+        "riwayat": [
+            {
+                "tanggal": p.dibuat_pada.date().isoformat(),
+                "percakapan": c.judul,
+                "dari": "penjual" if p.peran == "pengguna" else "asisten",
+                "isi": _potong(p.isi),
+            }
+            for p, c in baris
+        ],
+    }
+
+
+SKEMA_RIWAYAT: dict[str, Any] = {
+    "type": "function",
+    "function": {
+        "name": "cari_riwayat_tanya",
+        "description": (
+            "Cari tanya-jawab di percakapan Tanya AI LAIN milik penjual ini (30 hari terakhir), mis. bila penjual "
+            "bertanya 'kemarin aku tanya apa soal Bu Wulan?'. Kosongkan kata_kunci untuk tanya-jawab terbaru."
+        ),
+        "parameters": {
+            "type": "object",
+            "properties": {"kata_kunci": {"type": "string", "description": "Kata yang dicari, mis. nama pembeli. Opsional."}},
+        },
+    },
+}

@@ -200,3 +200,34 @@ class Payment(Base):
     dibuat_pada: Mapped[datetime] = mapped_column(DateTime, default=_sekarang)
 
     order: Mapped[Order] = relationship(back_populates="payments")
+
+
+class Percakapan(Base):
+    """Riwayat Tanya AI per akun. Dihapus otomatis setelah 30 hari tanpa pesan baru (lihat api/agen.py)."""
+
+    __tablename__ = "percakapan"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    pemilik: Mapped[str] = mapped_column(String(32), index=True)
+    judul: Mapped[str] = mapped_column(String(80))
+    dibuat_pada: Mapped[datetime] = mapped_column(DateTime, default=_sekarang)
+    # Waktu pesan terakhir. Dasar kedaluwarsa 30 hari.
+    diubah_pada: Mapped[datetime] = mapped_column(DateTime, default=_sekarang, index=True)
+
+    pesan: Mapped[list["PesanTanya"]] = relationship(
+        back_populates="percakapan", cascade="all, delete-orphan", order_by="PesanTanya.urutan"
+    )
+
+
+class PesanTanya(Base):
+    __tablename__ = "pesan_tanya"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
+    percakapan_id: Mapped[str] = mapped_column(ForeignKey("percakapan.id", ondelete="CASCADE"), index=True)
+    urutan: Mapped[int] = mapped_column(Integer)
+    peran: Mapped[str] = mapped_column(String(10))  # "pengguna" atau "agen"
+    isi: Mapped[str] = mapped_column(Text)
+    trace: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    dibuat_pada: Mapped[datetime] = mapped_column(DateTime, default=_sekarang)
+
+    percakapan: Mapped[Percakapan] = relationship(back_populates="pesan")

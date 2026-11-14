@@ -277,3 +277,25 @@ def test_agen_tanpa_tanggal_membaca_semua_hari(dua_hari, ro, monkeypatch):
     monkeypatch.setattr(llm, "chat_alat", LLMTiruan(panggil_alat("daftar_belum_bayar"), "3 pesanan belum bayar."))
     jawab = jalankan(agen.ask_agent("Siapa yang belum bayar?", dua_hari, []))
     assert jawab.trace[0].hasil["jumlah"] == 3
+
+
+def test_agen_dengan_pemilik_bisa_membaca_riwayat_percakapan_lain(ro, data, monkeypatch):
+    from datetime import datetime
+
+    from app.db import Percakapan, PesanTanya
+
+    data.add(Percakapan(id="lama", pemilik="demo", judul="Soal Rina", diubah_pada=datetime.now()))
+    data.add(PesanTanya(percakapan_id="lama", urutan=0, peran="pengguna", isi="Rina sudah bayar belum?"))
+    data.commit()
+    tiruan = LLMTiruan(panggil_alat("cari_riwayat_tanya", {"kata_kunci": "Rina"}), "Kemarin Anda menanyakan pembayaran Rina.")
+    monkeypatch.setattr(llm, "chat_alat", tiruan)
+    jawab = jalankan(agen.ask_agent("Kemarin aku tanya apa soal Rina?", "b-1", [], pemilik="demo", percakapan_id="baru"))
+    assert "cari_riwayat_tanya" in [a["function"]["name"] for a in tiruan.panggilan[0][1]]
+    assert jawab.trace[0].hasil["riwayat"][0]["isi"] == "Rina sudah bayar belum?"
+
+
+def test_agen_tanpa_pemilik_tidak_menawarkan_tool_riwayat(ro, monkeypatch):
+    tiruan = LLMTiruan("halo")
+    monkeypatch.setattr(llm, "chat_alat", tiruan)
+    jalankan(agen.ask_agent("halo", "b-1", []))
+    assert "cari_riwayat_tanya" not in [a["function"]["name"] for a in tiruan.panggilan[0][1]]

@@ -28,6 +28,10 @@ function judulLangkah(t: TraceLangkah): { ikon: NamaIkon; judul: string } {
       return { ikon: "orang", judul: (nama ? `Mencari pesanan “${nama}”` : "Mencari pesanan pembeli") + hari };
     case "rekap_produksi":
       return { ikon: "rekap", judul: (jam ? `Menghitung porsi untuk jam ${jam}` : "Menghitung porsi yang harus dimasak") + hari };
+    case "cari_riwayat_tanya": {
+      const kata = teks(t.argumen.kata_kunci);
+      return { ikon: "langkah", judul: kata ? `Membaca riwayat percakapan soal “${kata}”` : "Membaca riwayat percakapan lain" };
+    }
     default:
       return { ikon: "langkah", judul: t.tool.replace(/_/g, " ") };
   }
@@ -133,6 +137,24 @@ function RekapProduksi({ h }: { h: Data }) {
   );
 }
 
+function RiwayatLain({ h }: { h: Data }) {
+  const riwayat = daftar(h.riwayat);
+  if (riwayat.length === 0) return <p className="langkah-ringkas">{teks(h.pesan) ?? "Tidak ada riwayat yang cocok."}</p>;
+  return (
+    <ul className="langkah-daftar">
+      {riwayat.map((r, i) => (
+        <li key={i}>
+          <span className="langkah-nama">
+            {teks(r.dari) === "penjual" ? "Anda: " : "AI: "}
+            {teks(r.isi) ?? "-"}
+          </span>
+          <span className="langkah-nilai">{teks(r.tanggal) ?? ""}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function IsiLangkah({ t }: { t: TraceLangkah }) {
   const h = t.hasil;
   if (!h || Object.keys(h).length === 0) return <p className="langkah-ringkas">{t.hasil_ringkas}</p>;
@@ -147,6 +169,7 @@ function IsiLangkah({ t }: { t: TraceLangkah }) {
     daftar_belum_bayar: <BelumBayar h={h} />,
     cek_pesanan_pelanggan: <PesananPembeli h={h} />,
     rekap_produksi: <RekapProduksi h={h} />,
+    cari_riwayat_tanya: <RiwayatLain h={h} />,
   };
   return <>{isi[t.tool] ?? <p className="langkah-ringkas">{t.hasil_ringkas}</p>}</>;
 }

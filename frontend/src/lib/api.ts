@@ -203,6 +203,24 @@ export interface TraceLangkah {
 export interface AgentAnswer {
   jawaban: string;
   trace: TraceLangkah[];
+  /** Percakapan tempat jawaban ini disimpan (baru dibuat bila tidak dikirim). */
+  percakapan_id?: string;
+}
+
+export interface RingkasPercakapan {
+  id: string;
+  judul: string;
+  diubah_pada: string;
+  /** Tanggal percakapan terhapus bila tidak ada chat baru (30 hari setelah pesan terakhir). */
+  berakhir_pada: string;
+  jumlah_pesan: number;
+}
+
+export interface DetailPercakapan {
+  id: string;
+  judul: string;
+  berakhir_pada: string;
+  pesan: { peran: "pengguna" | "agen"; isi: string; trace: TraceLangkah[] }[];
 }
 
 export type RiwayatTanya = { peran: "pengguna" | "agen"; isi: string }[];
@@ -346,11 +364,19 @@ export const api = {
   ringkasan: () => minta<Ringkasan>("/ringkasan"),
 
   /** Tanpa `batchId`: agen membaca semua hari milik akun. */
-  tanya: (pertanyaan: string, riwayat: RiwayatTanya, batchId?: string) =>
+  tanya: (pertanyaan: string, riwayat: RiwayatTanya, opsi: { batchId?: string; percakapanId?: string | null } = {}) =>
     minta<AgentAnswer>("/agent/ask", {
       method: "POST",
-      body: json({ ...(batchId ? { batch_id: batchId } : {}), pertanyaan, riwayat }),
+      body: json({
+        ...(opsi.batchId ? { batch_id: opsi.batchId } : {}),
+        ...(opsi.percakapanId ? { percakapan_id: opsi.percakapanId } : {}),
+        pertanyaan,
+        riwayat,
+      }),
     }),
+  daftarPercakapan: () => minta<RingkasPercakapan[]>("/agent/percakapan"),
+  detailPercakapan: (id: string) => minta<DetailPercakapan>(`/agent/percakapan/${id}`),
+  hapusPercakapan: (id: string) => minta<void>(`/agent/percakapan/${id}`, { method: "DELETE" }),
 };
 
 /** Dipertahankan untuk kompatibilitas dengan kerangka awal. */
