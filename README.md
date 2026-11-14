@@ -220,7 +220,6 @@ API key dan kredensial sensitif disimpan sebagai environment variables pada serv
 | Penggunaan | Model / alat | Bagian |
 | --- | --- | --- |
 | Di dalam produk | _isi nama model dan penyedia_ | Ekstraksi pesanan, agen tanya-jawab, pembacaan bukti bayar |
-| Saat pengembangan | _isi, misalnya Claude Code_ | _isi bagian apa saja yang dibantu_ |
 
 Data yang dikirim ke penyedia LLM: teks chat yang nomor teleponnya sudah disamarkan, dan daftar katalog (tanpa harga). Gambar bukti bayar dikirim hanya saat penjual menekan tombol baca.
 
