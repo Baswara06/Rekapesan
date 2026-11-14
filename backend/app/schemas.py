@@ -73,6 +73,8 @@ class TraceStep(BaseModel):
     tool: str
     argumen: dict[str, Any] = {}
     hasil_ringkas: str = ""
+    # Hasil tool utuh (sudah dibatasi oleh tool-nya sendiri), supaya layar bisa menampilkannya dengan rapi.
+    hasil: dict[str, Any] = {}
 
 
 class AgentAnswer(BaseModel):

@@ -84,7 +84,7 @@ def test_agen_tanya_jawab_menyertakan_trace(client, pesanan_contoh, monkeypatch)
         assert batch_id == "b-1" and riwayat == []
         return AgentAnswer(
             answer="Ayam bakar jam 12:00: 4 porsi.",
-            trace=[TraceStep(tool="rekap_produksi", argumen={"jam": "12:00"}, hasil_ringkas="4")],
+            trace=[TraceStep(tool="rekap_produksi", argumen={"jam": "12:00"}, hasil_ringkas="4", hasil={"total_porsi": 4})],
         )
 
     monkeypatch.setattr(modul_agent, "ask_agent", tanya)
@@ -92,7 +92,7 @@ def test_agen_tanya_jawab_menyertakan_trace(client, pesanan_contoh, monkeypatch)
     assert res.status_code == 200
     assert res.json() == {
         "jawaban": "Ayam bakar jam 12:00: 4 porsi.",
-        "trace": [{"tool": "rekap_produksi", "argumen": {"jam": "12:00"}, "hasil_ringkas": "4"}],
+        "trace": [{"tool": "rekap_produksi", "argumen": {"jam": "12:00"}, "hasil_ringkas": "4", "hasil": {"total_porsi": 4}}],
     }
 
 

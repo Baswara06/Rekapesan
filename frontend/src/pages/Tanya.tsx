@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { PilihBatch } from "../components/Batch";
 import { Icon } from "../components/Icon";
+import { TraceAgen } from "../components/TraceAgen";
 import { Kaca, Kepala, Tombol } from "../components/ui";
 import { api, ApiError, type RiwayatTanya, type TraceLangkah } from "../lib/api";
 import { useApp } from "../lib/store";
@@ -85,7 +86,7 @@ export default function Tanya() {
                   <span className="sr">{p.peran === "pengguna" ? "Anda:" : "Agen:"}</span>
                   {p.galat && <Icon nama="peringatan" ukuran={18} />}
                   <p>{p.isi}</p>
-                  {p.trace && <Trace trace={p.trace} />}
+                  {p.trace && <TraceAgen trace={p.trace} />}
                 </div>
               </div>
             ))}
@@ -122,36 +123,5 @@ export default function Tanya() {
         </>
       )}
     </div>
-  );
-}
-
-function Trace({ trace }: { trace: TraceLangkah[] }) {
-  if (trace.length === 0) return <p className="trace-kosong kecil redup">Tanpa membaca data.</p>;
-  return (
-    <details className="trace">
-      <summary>
-        <Icon nama="langkah" ukuran={16} /> Lihat langkah AI ({trace.length})
-      </summary>
-      <ol>
-        {trace.map((t, i) => (
-          <li key={i}>
-            <code className="trace-tool">{t.tool}</code>
-            {Object.keys(t.argumen).length > 0 && (
-              <dl className="trace-argumen">
-                {Object.entries(t.argumen)
-                  .filter(([k]) => k !== "batch_id")
-                  .map(([k, v]) => (
-                    <div key={k}>
-                      <dt>{k}</dt>
-                      <dd>{typeof v === "string" ? v : JSON.stringify(v)}</dd>
-                    </div>
-                  ))}
-              </dl>
-            )}
-            <p className="trace-hasil">{t.hasil_ringkas}</p>
-          </li>
-        ))}
-      </ol>
-    </details>
   );
 }

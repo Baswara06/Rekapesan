@@ -121,6 +121,7 @@ def test_agen_memanggil_tool_lalu_menjawab_dengan_trace(ro, monkeypatch):
     langkah = jawab.trace[0]
     assert langkah.tool == "rekap_produksi" and langkah.argumen == {"batch_id": "b-1", "jam": "12:00"}
     assert '"porsi": 4' in langkah.hasil_ringkas
+    assert langkah.hasil["jam"] == "12:00" and langkah.hasil["total_porsi"] >= 4  # data utuh untuk layar
     hasil_tool = tiruan.panggilan[1][0][-1]  # model menerima hasil tool pada panggilan kedua
     assert hasil_tool["role"] == "tool" and hasil_tool["tool_call_id"] == "c1" and '"porsi": 4' in hasil_tool["content"]
 
