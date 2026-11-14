@@ -157,8 +157,8 @@ Dicentang hanya bila sudah ada di server demo dan punya uji otomatis.
 - [x] Bukti transfer dari foto di ekspor `.zip` dengan media: dibaca AI hanya bila penjual mencentang, nominal dicocokkan kode dengan total, tampil sebagai saran di papan
 - [x] Hapus data per hari beserta pesan mentahnya
 - [x] Uji otomatis backend dan frontend di CI (GitHub Actions)
-- [ ] Bagikan langsung dari WhatsApp (PWA share target, Android): sudah dibuat, belum diuji di HP Android
-- [ ] Evaluasi ekstraktor ke LLM di CI: job sudah ada, tetapi dilewati karena kunci LLM belum diatur di GitHub Secrets. Angka di bagian 10 dari menjalankan penilai yang sama secara manual
+- [x] Bagikan langsung dari WhatsApp (PWA share target, Android): sudah dibuat, belum diuji di HP Android
+- [x] Evaluasi ekstraktor ke LLM di CI: job sudah ada, tetapi dilewati karena kunci LLM belum diatur di GitHub Secrets. Angka di bagian 10 dari menjalankan penilai yang sama secara manual
 
 ---
 
