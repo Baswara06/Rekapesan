@@ -60,3 +60,6 @@ flowchart TD
 - Isi chat diperlakukan sebagai data, bukan instruksi.
 - Agen: tool hanya baca, DB read-only, guardrail di system prompt.
 - Kredensial hanya di `.env`.
+- Akun: akun demo dari `.env`, akun lain lewat `POST /auth/register` (kata sandi di-hash PBKDF2-SHA256, tabel `users`).
+- Data terpisah per akun: `products.pemilik` dan `batches.pemilik` berisi username di token. Pesanan, pembeli, pesan mentah, bukti bayar, rekap, dan agen ikut pemilik batch. Pemeriksaan ada di `backend/app/api/kepemilikan.py`. Data akun lain dijawab 404. Katalog yang dikirim ke LLM saat impor hanya milik pemilik batch.
+

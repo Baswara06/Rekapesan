@@ -2,7 +2,7 @@
 
 Pemilik kontrak: **Raihan**. Perubahan harus disepakati lewat PR yang mengubah berkas ini, karena Amad membangun FE (dan mock) dari sini.
 
-Basis: `/api`. Format: JSON. Autentikasi: header `Authorization: Bearer <token>` kecuali `/auth/login` dan `/health`. Uang dalam rupiah (integer). Waktu ISO 8601.
+Basis: `/api`. Format: JSON. Autentikasi: header `Authorization: Bearer <token>` kecuali `/auth/login`, `/auth/register`, dan `/health`. Uang dalam rupiah (integer). Waktu ISO 8601.
 
 ## Kesalahan seragam
 
@@ -29,13 +29,15 @@ Untuk impor, `kuota_llm_habis` dan `llm_gagal` hanya muncul bila ekstraksi gagal
 | Method | Path | Isi |
 | --- | --- | --- |
 | POST | `/auth/login` | `{username, password}` → `{token}` (berlaku 12 jam) |
+| POST | `/auth/register` | `{username, password}` → 201 `{token}`. Username 3-32 karakter `a-z 0-9 _ .` (disimpan huruf kecil), kata sandi minimal 8 karakter. 422 `validasi_gagal` bila tidak sah, 409 `username_dipakai` bila sudah ada (termasuk nama akun demo) |
 | GET | `/health` | `{status: "ok"}` |
 
-Akun demo diatur lewat `DEMO_USERNAME` dan `DEMO_PASSWORD` di `.env`. Token ditandatangani dengan `APP_SECRET_KEY`.
+Akun demo diatur lewat `DEMO_USERNAME` dan `DEMO_PASSWORD` di `.env`. Akun hasil register disimpan di tabel `users`, kata sandi di-hash PBKDF2-SHA256. Token ditandatangani dengan `APP_SECRET_KEY`.
 
-Login **dimatikan** (401 `tidak_terautentikasi` dengan pesan yang menyebut isian `.env` yang kurang) bila:
+**Data terpisah per akun.** Katalog dan batch punya `pemilik` (username di token). Pesanan, pembeli, pesan mentah, rekap, bukti bayar, dan agen ikut pemilik batch-nya. Data akun lain dijawab 404 `tidak_ditemukan`. Database lama tanpa kolom `pemilik` diberi kolom itu saat server mulai, dan datanya diserahkan ke akun demo.
 
-- `DEMO_PASSWORD` kosong, atau
+Login akun demo **dimatikan** (401 `tidak_terautentikasi` dengan pesan yang menyebut isian `.env` yang kurang) bila `DEMO_PASSWORD` kosong. Semua login dan register dimatikan bila:
+
 - `APP_SECRET_KEY` kosong, masih nilai bawaan `.env.example`, atau kurang dari 16 karakter. Token yang ditandatangani dengan kunci seperti itu juga ditolak, supaya tidak ada yang bisa membuat token sendiri.
 
 ## Katalog

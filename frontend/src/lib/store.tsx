@@ -12,6 +12,7 @@ interface Toast {
 interface AppState {
   masuk: boolean;
   login: (u: string, p: string) => Promise<void>;
+  daftar: (u: string, p: string) => Promise<void>;
   keluar: () => void;
 
   batches: Batch[];
@@ -86,13 +87,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     aturSaatTidakTerautentikasi(() => {
-      setMasuk(false);
+      keluar(); // bersihkan data akun sebelumnya, supaya tidak tampil ke akun lain yang masuk di perangkat ini
       toast("Sesi berakhir. Silakan masuk lagi.", "info");
     });
-  }, [toast]);
+  }, [toast, keluar]);
+
 
   const login = useCallback(async (u: string, p: string) => {
     const { token } = await api.login(u, p);
+    simpanToken(token);
+    setMasuk(true);
+  }, []);
+
+  const daftar = useCallback(async (u: string, p: string) => {
+    const { token } = await api.daftar(u, p);
     simpanToken(token);
     setMasuk(true);
   }, []);
@@ -145,6 +153,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => ({
       masuk,
       login,
+      daftar,
       keluar,
       batches,
       batchAktif: batches.find((b) => b.id === idAktif) ?? null,
@@ -162,7 +171,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       tema,
       setTema: setTemaState,
     }),
-    [masuk, login, keluar, batches, idAktif, muatBatch, batchSiap, katalog, muatKatalog, versiData, toast, toasts, tutupToast, tema],
+    [masuk, login, daftar, keluar,
+ batches, idAktif, muatBatch, batchSiap, katalog, muatKatalog, versiData, toast, toasts, tutupToast, tema],
   );
 
   return <Ctx.Provider value={nilai}>{children}</Ctx.Provider>;

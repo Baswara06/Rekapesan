@@ -11,7 +11,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import extractor as modul_extractor
-from app.core.errors import ApiError, tidak_ditemukan, validasi
+from app.api.kepemilikan import pastikan_order_milik, pemilik_aktif
+from app.core.errors import ApiError, validasi
 from app.db import STATUS_DIBAYAR, STATUS_DIKONFIRMASI, Order, Payment, get_db
 
 router = APIRouter(prefix="/api")
@@ -19,16 +20,18 @@ router = APIRouter(prefix="/api")
 MAKS_GAMBAR_BYTE = 5 * 1024 * 1024
 
 
-def _order(db: Session, order_id: str) -> Order:
-    o = db.get(Order, order_id)
-    if o is None:
-        raise tidak_ditemukan("Pesanan")
-    return o
+def _order(db: Session, order_id: str, pemilik: str) -> Order:
+    return pastikan_order_milik(db, db.get(Order, order_id), pemilik)
 
 
 @router.post("/orders/{order_id}/payment-proof")
-async def bukti_bayar(order_id: str, file: UploadFile = File(...), db: Session = Depends(get_db)) -> dict[str, Any]:
-    order = _order(db, order_id)
+async def bukti_bayar(
+    order_id: str,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    pemilik: str = Depends(pemilik_aktif),
+) -> dict[str, Any]:
+    order = _order(db, order_id, pemilik)
     if not (file.content_type or "").startswith("image/"):
         raise validasi("Unggah gambar tangkapan layar transfer (JPG atau PNG).")
     data = await file.read(MAKS_GAMBAR_BYTE + 1)
@@ -49,9 +52,10 @@ async def bukti_bayar(order_id: str, file: UploadFile = File(...), db: Session =
 
 
 @router.post("/orders/{order_id}/payment-confirm")
-def konfirmasi_bayar(order_id: str, db: Session = Depends(get_db)) -> dict[str, Any]:
+def konfirmasi_bayar(order_id: str, db: Session = Depends(get_db), pemilik: str = Depends(pemilik_aktif)) -> dict[str, Any]:
     """Penjual menyatakan pesanan sudah dibayar. Hanya untuk pesanan yang sudah disetujui."""
-    order = _order(db, order_id)
+    order = _order(db, order_id, pemilik)
+
     if order.status == STATUS_DIBAYAR:
         return {"order_id": order.id, "status": order.status}
     if order.status != STATUS_DIKONFIRMASI:

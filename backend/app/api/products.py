@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app.api.kepemilikan import pemilik_aktif, produk_milik
 from app.api.serializers import product_out
 from app.core.errors import tidak_ditemukan
 from app.db import Product, Recipe, get_db
@@ -51,24 +52,29 @@ def _resep(items: list[ResepIn]) -> list[Recipe]:
     return [Recipe(bahan=r.bahan.strip(), jumlah=r.jumlah, satuan=r.satuan.strip()) for r in items]
 
 
-def _ambil(db: Session, product_id: str) -> Product:
-    p = db.scalar(select(Product).where(Product.id == product_id).options(selectinload(Product.resep)))
+def _ambil(db: Session, product_id: str, pemilik: str) -> Product:
+    p = db.scalar(produk_milik(pemilik).where(Product.id == product_id).options(selectinload(Product.resep)))
     if p is None:
         raise tidak_ditemukan("Menu")
     return p
 
 
 @router.get("/products")
-def daftar_produk(aktif: bool | None = Query(default=None), db: Session = Depends(get_db)) -> list[dict[str, Any]]:
-    q = select(Product).options(selectinload(Product.resep)).order_by(Product.nama)
+def daftar_produk(
+    aktif: bool | None = Query(default=None),
+    db: Session = Depends(get_db),
+    pemilik: str = Depends(pemilik_aktif),
+) -> list[dict[str, Any]]:
+    q = produk_milik(pemilik).options(selectinload(Product.resep)).order_by(Product.nama)
     if aktif is not None:
         q = q.where(Product.aktif == aktif)
     return [product_out(p) for p in db.scalars(q)]
 
 
 @router.post("/products", status_code=201)
-def buat_produk(body: ProductIn, db: Session = Depends(get_db)) -> dict[str, Any]:
+def buat_produk(body: ProductIn, db: Session = Depends(get_db), pemilik: str = Depends(pemilik_aktif)) -> dict[str, Any]:
     p = Product(
+        pemilik=pemilik,
         nama=body.nama.strip(),
         alias=_bersihkan_alias(body.alias),
         harga=body.harga,
@@ -82,8 +88,10 @@ def buat_produk(body: ProductIn, db: Session = Depends(get_db)) -> dict[str, Any
 
 
 @router.patch("/products/{product_id}")
-def ubah_produk(product_id: str, body: ProductPatch, db: Session = Depends(get_db)) -> dict[str, Any]:
-    p = _ambil(db, product_id)
+def ubah_produk(
+    product_id: str, body: ProductPatch, db: Session = Depends(get_db), pemilik: str = Depends(pemilik_aktif)
+) -> dict[str, Any]:
+    p = _ambil(db, product_id, pemilik)
     diisi = body.model_fields_set
     if body.nama is not None:
         p.nama = body.nama.strip()
@@ -102,9 +110,10 @@ def ubah_produk(product_id: str, body: ProductPatch, db: Session = Depends(get_d
 
 
 @router.delete("/products/{product_id}")
-def nonaktifkan_produk(product_id: str, db: Session = Depends(get_db)) -> dict[str, Any]:
+def nonaktifkan_produk(product_id: str, db: Session = Depends(get_db), pemilik: str = Depends(pemilik_aktif)) -> dict[str, Any]:
     """Menu tidak dihapus (pesanan lama masih merujuknya), hanya dinonaktifkan."""
-    p = _ambil(db, product_id)
+    p = _ambil(db, product_id, pemilik)
+
     p.aktif = False
     db.commit()
     return product_out(p)

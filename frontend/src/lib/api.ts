@@ -187,7 +187,7 @@ async function minta<T>(path: string, init: RequestInit = {}): Promise<T> {
     const err = data?.error;
     const kode: string = err?.kode ?? "galat_server";
     const pesan: string = err?.pesan ?? `Server membalas galat (${res.status}). Coba lagi sebentar.`;
-    if (res.status === 401 && path !== "/auth/login") {
+    if (res.status === 401 && !path.startsWith("/auth/")) {
       simpanToken(null);
       saatTidakTerautentikasi?.();
     }
@@ -202,6 +202,9 @@ export const api = {
   kesehatan: () => minta<{ status: string }>("/health"),
   login: (username: string, password: string) =>
     minta<{ token: string }>("/auth/login", { method: "POST", body: json({ username, password }) }),
+  daftar: (username: string, password: string) =>
+    minta<{ token: string }>("/auth/register", { method: "POST", body: json({ username, password }) }),
+
 
   daftarMenu: () => minta<Product[]>("/products"),
   buatMenu: (p: ProductIn) => minta<Product>("/products", { method: "POST", body: json(p) }),

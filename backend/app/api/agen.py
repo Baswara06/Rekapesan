@@ -7,8 +7,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app import agent as modul_agent
-from app.core.errors import ApiError, tidak_ditemukan
-from app.db import Batch, get_db
+from app.api.kepemilikan import batch_milik, pemilik_aktif
+from app.core.errors import ApiError
+from app.db import get_db
 
 router = APIRouter(prefix="/api")
 
@@ -20,9 +21,9 @@ class AskIn(BaseModel):
 
 
 @router.post("/agent/ask")
-async def tanya(body: AskIn, db: Session = Depends(get_db)) -> dict[str, Any]:
-    if db.get(Batch, body.batch_id) is None:
-        raise tidak_ditemukan("Batch")
+async def tanya(body: AskIn, db: Session = Depends(get_db), pemilik: str = Depends(pemilik_aktif)) -> dict[str, Any]:
+    batch_milik(db, body.batch_id, pemilik)
+
     try:
         jawab = await modul_agent.ask_agent(body.pertanyaan, body.batch_id, body.riwayat)
     except NotImplementedError:

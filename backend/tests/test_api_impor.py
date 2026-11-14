@@ -20,7 +20,8 @@ def client(tmp_path, monkeypatch):
     engine = make_engine(f"sqlite:///{tmp_path / 'api.db'}")
     init_db(engine)
     with Session(engine) as s:
-        s.add(Batch(id="b-1", nama="PO", tanggal_kirim=date(2026, 11, 13)))
+        s.add(Batch(id="b-1", pemilik="demo", nama="PO",
+ tanggal_kirim=date(2026, 11, 13)))
         s.commit()
 
     def _db():
