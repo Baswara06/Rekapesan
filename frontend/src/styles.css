@@ -3717,9 +3717,37 @@ main[tabindex="-1"]:focus {
   min-height: 56px;
   font-size: 1.05rem;
 }
-.papan-ringkasan h2 {
-  margin: 0 0 0.6rem;
-  font-size: 1rem;
+.papan-ringkasan {
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+.ringkas-sorot {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--r-sm);
+}
+.ringkas-sorot.nada-kuning {
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+}
+.ringkas-sorot.nada-hijau {
+  background: var(--tool-soft);
+  color: var(--tool-strong);
+}
+.ringkas-sorot p {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 15px;
+}
+.ringkas-sorot svg {
+  flex: none;
+  margin-top: 0.1rem;
 }
 .papan-kisi {
   display: grid;
@@ -3728,7 +3756,7 @@ main[tabindex="-1"]:focus {
   margin: 0;
 }
 .papan-kisi > div {
-  padding: 0.65rem 0.75rem;
+  padding: 0.6rem 0.65rem;
   border-radius: var(--r-sm);
   background: var(--field);
   min-width: 0;
@@ -3741,18 +3769,53 @@ main[tabindex="-1"]:focus {
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+  color: inherit;
 }
 .papan-kisi dd {
-  margin: 0.15rem 0 0;
+  margin: 0.2rem 0 0;
   font-weight: 700;
-  font-size: 1.1rem;
-  overflow-wrap: anywhere;
+  font-size: 1.15rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
-@media (min-width: 720px) {
-  .papan-kisi {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
+.papan-kisi-sub {
+  font-size: 0.78rem;
+  font-weight: 500;
+  opacity: 0.75;
+}
+.papan-kisi > .papan-tagihan {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.papan-tagihan dt {
+  font-size: 0.9rem;
+  font-weight: 600;
+  gap: 0.45rem;
+}
+.papan-tagihan dt > span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.papan-tagihan dd {
+  margin: 0;
+  font-size: 1.2rem;
+}
+.ringkas-omzet {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 14px;
+  color: var(--steel);
+}
+.ringkas-omzet strong {
+  color: var(--ink, inherit);
 }
 .papan-hari h2 {
   display: flex;

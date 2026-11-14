@@ -42,31 +42,66 @@ export function LencanaBayar({ bayar }: { bayar: StatusBayar }) {
 }
 
 export function RingkasanKeseluruhan({ data }: { data: Ringkasan["keseluruhan"] }) {
-  const kotak: { label: string; nilai: string; ikon: NamaIkon; sorot?: boolean }[] = [
-    { label: "Perlu dicek", nilai: String(data.perlu_cek), ikon: "peringatan", sorot: data.perlu_cek > 0 },
-    { label: "Diproses", nilai: String(data.diproses), ikon: "jam" },
-    { label: "Selesai", nilai: String(data.selesai), ikon: "truk" },
-    { label: "Omzet disetujui", nilai: rupiah(data.omzet), ikon: "rekap" },
-    {
-      label: `Belum bayar (${data.jumlah_belum_bayar} orang)`,
-      nilai: rupiah(data.belum_bayar),
-      ikon: "dompet",
-      sorot: data.jumlah_belum_bayar > 0,
-    },
+  const kotak: { label: string; nilai: string; sub: string; ikon: NamaIkon }[] = [
+    { label: "Diproses", nilai: String(data.diproses), sub: "pesanan", ikon: "jam" },
+    { label: "Selesai", nilai: String(data.selesai), sub: "pesanan", ikon: "truk" },
   ];
+  const adaTagihan = data.jumlah_belum_bayar > 0;
+  const menunggu = data.perlu_cek;
   return (
     <section className="kaca papan-ringkasan" aria-labelledby="judul-papan-ringkasan">
-      <h2 id="judul-papan-ringkasan">Ringkasan semua hari</h2>
+      <h2 id="judul-papan-ringkasan" className="sr">
+        Ringkasan semua hari
+      </h2>
+      {menunggu > 0 ? (
+        <div className="ringkas-sorot nada-kuning">
+          <Icon nama="peringatan" ukuran={22} />
+          <p>
+            <strong>{menunggu} pesanan</strong> menunggu persetujuan Anda
+            <span className="kecil">AI sudah membaca chatnya, Anda yang memutuskan.</span>
+          </p>
+        </div>
+      ) : (
+        <div className="ringkas-sorot nada-hijau">
+          <Icon nama="centang" ukuran={22} />
+          <p>
+            <strong>Semua pesanan sudah dicek</strong>
+          </p>
+        </div>
+      )}
       <dl className="papan-kisi">
         {kotak.map((k) => (
-          <div key={k.label} className={k.sorot ? "nada-kuning" : ""}>
+          <div key={k.label}>
             <dt>
               <Icon nama={k.ikon} ukuran={16} /> {k.label}
             </dt>
-            <dd>{k.nilai}</dd>
+            <dd>
+              {k.nilai} <span className="papan-kisi-sub">{k.sub}</span>
+            </dd>
           </div>
         ))}
+        {/* Nominal rupiah bisa panjang: satu baris penuh supaya tidak terpotong di layar sempit. */}
+        <div className={`papan-tagihan ${adaTagihan ? "nada-kuning" : ""}`}>
+          <dt>
+            <Icon nama="dompet" ukuran={18} />
+            <span>
+              Belum bayar
+              <span className="papan-kisi-sub">{adaTagihan ? `${data.jumlah_belum_bayar} pembeli` : "Semua lunas"}</span>
+            </span>
+          </dt>
+          <dd>{rupiah(data.belum_bayar)}</dd>
+        </div>
       </dl>
+      <p className="ringkas-omzet">
+        <Icon nama="rekap" ukuran={16} />
+        {data.omzet > 0 ? (
+          <span>
+            Omzet pesanan disetujui <strong>{rupiah(data.omzet)}</strong>
+          </span>
+        ) : (
+          <span>Omzet dihitung setelah pesanan disetujui.</span>
+        )}
+      </p>
     </section>
   );
 }
