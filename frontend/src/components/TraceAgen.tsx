@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { StatusPesanan, TraceLangkah } from "../lib/api";
-import { rupiah, STATUS } from "../lib/format";
+import { rupiah, STATUS, tanggalPanjang } from "../lib/format";
 import { Icon, type NamaIkon } from "./Icon";
 import { LencanaStatus } from "./ui";
 
@@ -18,13 +18,16 @@ const daftar = (v: unknown): Data[] => (Array.isArray(v) ? (v.filter((x) => x &&
 function judulLangkah(t: TraceLangkah): { ikon: NamaIkon; judul: string } {
   const nama = teks(t.argumen.nama);
   const jam = teks(t.argumen.jam);
+  const tgl = teks(t.argumen.tanggal);
+  // "· Sabtu, 14 Nov" bila AI menyaring satu hari; tanpa tanggal berarti semua hari.
+  const hari = tgl ? ` · ${tanggalPanjang(tgl)}` : "";
   switch (t.tool) {
     case "daftar_belum_bayar":
-      return { ikon: "dompet", judul: "Membaca daftar yang belum bayar" };
+      return { ikon: "dompet", judul: `Membaca daftar yang belum bayar${hari}` };
     case "cek_pesanan_pelanggan":
-      return { ikon: "orang", judul: nama ? `Mencari pesanan “${nama}”` : "Mencari pesanan pembeli" };
+      return { ikon: "orang", judul: (nama ? `Mencari pesanan “${nama}”` : "Mencari pesanan pembeli") + hari };
     case "rekap_produksi":
-      return { ikon: "rekap", judul: jam ? `Menghitung porsi untuk jam ${jam}` : "Menghitung porsi yang harus dimasak" };
+      return { ikon: "rekap", judul: (jam ? `Menghitung porsi untuk jam ${jam}` : "Menghitung porsi yang harus dimasak") + hari };
     default:
       return { ikon: "langkah", judul: t.tool.replace(/_/g, " ") };
   }

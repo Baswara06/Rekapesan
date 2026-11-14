@@ -102,3 +102,16 @@ def test_agen_galat_seragam(client, pesanan_contoh):
     res = client.post("/api/agent/ask", json={"batch_id": "b-1", "pertanyaan": "halo"})  # agen masih stub
     assert res.status_code == 502 and res.json()["error"]["kode"] == "llm_gagal"
     assert client.post("/api/agent/ask", json={"batch_id": "b-1", "pertanyaan": ""}).status_code == 422
+
+
+def test_agen_tanpa_batch_membaca_semua_hari_milik_akun(client, pesanan_contoh, monkeypatch):
+    diterima = {}
+
+    async def tanya(pertanyaan, lingkup, riwayat):
+        diterima["lingkup"] = lingkup
+        return AgentAnswer(answer="ok", trace=[])
+
+    monkeypatch.setattr(modul_agent, "ask_agent", tanya)
+    res = client.post("/api/agent/ask", json={"pertanyaan": "Siapa belum bayar?"})
+    assert res.status_code == 200
+    assert [(h.batch_id, h.tanggal) for h in diterima["lingkup"]] == [("b-1", "2026-11-13")]

@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { PilihBatch } from "../components/Batch";
 import { Icon } from "../components/Icon";
 import { TraceAgen } from "../components/TraceAgen";
-import { Kaca, Kepala, Tombol } from "../components/ui";
+import { Kaca, Kepala, Kosong, Tombol } from "../components/ui";
 import { api, ApiError, type RiwayatTanya, type TraceLangkah } from "../lib/api";
 import { useApp } from "../lib/store";
 
 type Pesan = { id: number; peran: "pengguna" | "agen"; isi: string; trace?: TraceLangkah[]; galat?: boolean };
 
-const SARAN = ["Berapa ayam bakar untuk jam 12?", "Siapa saja yang belum bayar?", "Pesanan Bu Rina apa saja?", "Total porsi hari ini berapa?"];
+const SARAN = ["Siapa saja yang belum bayar?", "Berapa porsi yang harus dimasak besok?", "Berapa porsi untuk jam 12?", "Total porsi semua hari berapa?"];
 
 /** Batas riwayat yang dikirim: cukup untuk pertanyaan lanjutan, hemat token. */
 const MAKS_RIWAYAT = 6;
 
 export default function Tanya() {
-  const { batchAktif, batches } = useApp();
+  // Tanpa memilih hari: agen membaca semua hari milik akun dan menyaring tanggal sendiri.
+  const { batches } = useApp();
   const [pesan, setPesan] = useState<Pesan[]>([]);
   const [teks, setTeks] = useState("");
   const [jalan, setJalan] = useState(false);
@@ -22,16 +22,12 @@ export default function Tanya() {
   const nomor = useRef(0);
 
   useEffect(() => {
-    setPesan([]);
-  }, [batchAktif?.id]);
-
-  useEffect(() => {
     akhir.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [pesan, jalan]);
 
   async function kirim(pertanyaan: string) {
     const q = pertanyaan.trim();
-    if (!q || !batchAktif || jalan) return;
+    if (!q || jalan) return;
     const riwayat: RiwayatTanya = pesan
       .filter((p) => !p.galat)
       .slice(-MAKS_RIWAYAT)
@@ -40,7 +36,7 @@ export default function Tanya() {
     setTeks("");
     setJalan(true);
     try {
-      const r = await api.tanya(batchAktif.id, q, riwayat);
+      const r = await api.tanya(q, riwayat);
       setPesan((ps) => [...ps, { id: ++nomor.current, peran: "agen", isi: r.jawaban, trace: r.trace }]);
     } catch (e) {
       setPesan((ps) => [
@@ -60,9 +56,18 @@ export default function Tanya() {
   return (
     <div className="tumpuk halaman-tanya halaman-sempit">
       <Kepala judul="Tanya pesanan" sub="AI hanya membaca data pesanan, tidak bisa mengubah apa pun." />
-      {batches.length === 0 ? <PilihBatch /> : <PilihBatch ringkas />}
+      {batches.length === 0 && (
+        <Kaca className="kartu">
+          <Kosong ikon="tanya" judul="Belum ada pesanan untuk ditanyakan">
+            <p>Masukkan chat WhatsApp dulu. Setelah itu tanyakan apa saja tentang pesanan di semua hari.</p>
+            <a href="#/masukkan-chat" className="tombol tombol-utama tombol-besar">
+              <Icon nama="impor" /> Masukkan chat
+            </a>
+          </Kosong>
+        </Kaca>
+      )}
 
-      {batchAktif && (
+      {batches.length > 0 && (
         <>
           <div className="obrolan" aria-live="polite" aria-label="Percakapan">
             {pesan.length === 0 && (
@@ -70,7 +75,7 @@ export default function Tanya() {
                 <span className="kartu-tanya-ikon">
                   <Icon nama="tanya" ukuran={28} />
                 </span>
-                <p>Tanyakan apa saja tentang pesanan di {batchAktif.nama}. Setiap jawaban menunjukkan data apa yang dibaca AI.</p>
+                <p>Tanyakan apa saja tentang pesanan di semua hari. Sebut harinya kalau perlu, misalnya "besok" atau "Sabtu". Setiap jawaban menunjukkan data apa yang dibaca AI.</p>
                 <div className="saran-tanya">
                   {SARAN.map((s) => (
                     <button key={s} type="button" className="tag-tombol" onClick={() => kirim(s)}>
