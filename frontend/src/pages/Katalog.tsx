@@ -19,7 +19,7 @@ export default function Katalog() {
       <Kepala
         judul="Katalog menu"
         sub="Harga hanya disimpan di sini. AI tidak pernah melihat atau mengubah harga."
-        kembali="#/lainnya"
+        kembali="#/"
       />
       <Tombol varian="utama" ikon="tambah" besar penuh onClick={() => setEdit("baru")}>
         Tambah menu

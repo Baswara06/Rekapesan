@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon, type NamaIkon } from "./components/Icon";
 import { TandaLogo, TeksLogo } from "./components/Logo";
+import { MenuAkun } from "./components/MenuAkun";
 import { Toasts } from "./components/ui";
 import { api } from "./lib/api";
 import { useRute } from "./lib/router";
@@ -179,15 +180,7 @@ export default function App() {
                 <span>{batchAktif.nama}</span>
               </a>
             )}
-            <a
-              href="#/lainnya"
-              className="tombol tombol-hantu tombol-ikon"
-              aria-label="Lainnya: katalog dan pengaturan"
-              title="Katalog dan pengaturan"
-              aria-current={s0 === "lainnya" ? "page" : undefined}
-            >
-              <Icon nama="pengaturan" ukuran={19} />
-            </a>
+            <MenuAkun />
           </div>
         </div>
       </header>
