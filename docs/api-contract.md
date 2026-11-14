@@ -68,7 +68,7 @@ Batch = { "id": "uuid", "nama": "PO Jumat", "tanggal_kirim": "2026-11-13",
           "tanggal_mulai": "2026-11-12", "dibuat_pada": "2026-11-12T08:10:00" }
 ```
 
-`tanggal_mulai` adalah tanggal chat PO dibuka (boleh kosong). Pesan sebelum tanggal itu dibuang saat impor. Tidak boleh setelah `tanggal_kirim`.
+`tanggal_mulai` adalah tanggal chat PO dibuka (boleh kosong). Saat impor, pesan sebelum `tanggal_mulai` dan sesudah `tanggal_kirim` dibuang. Tidak boleh setelah `tanggal_kirim`.
 
 ## Impor
 
